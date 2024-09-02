@@ -1,8 +1,6 @@
 # CMYKnight
  
-BUILD
-
-Unity 2022.44f1 (LTS)
+* Unity 2022.44f1 (LTS)
 
 Support Extensions:
 - WebGL
@@ -11,7 +9,7 @@ Support Extensions:
 - LinuxOS (Mono)
 - Windows 
 
-2D (Built-In Render Pipeline) Project 
+* 2D (Built-In Render Pipeline) Project 
 
 Packages: 
 - Visual Studio Code Support 
