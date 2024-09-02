@@ -19,6 +19,5 @@ Packages:
 - Cinemachine 
 - Serialization 
 
-Added:
-- SQLite Plugins 
-- 2DAPI
+Plugins:
+- SQLite Precompiled Binaries (https://www.sqlite.org/download.html)
