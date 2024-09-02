@@ -92,3 +92,4 @@ crashlytics-build.properties
 
 # Prevent Game Data from being placed in version history
 *.db
+*.db.meta
