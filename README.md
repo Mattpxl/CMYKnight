@@ -20,4 +20,5 @@ Packages:
 - Serialization 
 
 Plugins:
+- Mono.Data.Sqlite.dll 
 - SQLite Precompiled Binaries (https://www.sqlite.org/download.html)
