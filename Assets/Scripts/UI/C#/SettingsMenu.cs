@@ -2,16 +2,16 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class DefaultUI : EditorWindow
+public class SettingsMenu : EditorWindow
 {
     [SerializeField]
     private VisualTreeAsset m_VisualTreeAsset = default;
 
-    [MenuItem("Window/UI Toolkit/DefaultUI")]
+    [MenuItem("Window/UI Toolkit/SettingsMenu")]
     public static void ShowExample()
     {
-        DefaultUI wnd = GetWindow<DefaultUI>();
-        wnd.titleContent = new GUIContent("DefaultUI");
+        SettingsMenu wnd = GetWindow<SettingsMenu>();
+        wnd.titleContent = new GUIContent("SettingsMenu");
     }
 
     public void CreateGUI()

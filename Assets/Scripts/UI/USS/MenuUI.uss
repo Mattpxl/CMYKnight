@@ -1,0 +1,27 @@
+.panel {
+    background-color: rgba(0, 0, 0, 0.53);
+}
+
+.hide {
+    display: flex;
+}
+
+.unity-button:hover {
+    scale: 1.2 1.2;
+    transition-property: scale;
+    transition-duration: 0.25s;
+    background-image: none;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.custom-label {
+    font-size: 20px;
+    -unity-font-style: bold;
+    color: rgb(68, 138, 255);
+}
+
+.unity-text-element {
+    -unity-font: url("project://database/Assets/Settings/UI/Font/Silver.ttf?fileID=12800000&guid=78e26553322994f81a0b9a0cd6e99425&type=3#Silver");
+    -unity-font-definition: url("project://database/Assets/Settings/UI/Font/Silver%20SDF.asset?fileID=11400000&guid=8f38c651cf8534d64ad963597c2363db&type=2#Silver SDF");
+    color: rgb(255, 255, 255);
+}
