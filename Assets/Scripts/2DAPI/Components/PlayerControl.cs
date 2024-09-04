@@ -272,7 +272,6 @@ public class PlayerControl : MonoBehaviour
       {
         takeDamage();
         StartCoroutine(DamageImmunity());
-        Debug.Log(_lives);
       }
     }
     private void collectCheck()

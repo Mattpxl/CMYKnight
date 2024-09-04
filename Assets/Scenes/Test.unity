@@ -704,6 +704,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 421353544890108356, guid: a786a01216ab1417a887fa6d7ec4f14d, type: 3}
+      propertyPath: _hoverMangnitude
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 3672151262699716233, guid: a786a01216ab1417a887fa6d7ec4f14d, type: 3}
       propertyPath: m_Name
       value: Key
@@ -812,6 +816,14 @@ PrefabInstance:
     - target: {fileID: 8539218945755737901, guid: cbd55e765f038479f99fae37271b3c0f, type: 3}
       propertyPath: m_StaticEditorFlags
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9121586645682878286, guid: cbd55e765f038479f99fae37271b3c0f, type: 3}
+      propertyPath: _isHorizontal
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9121586645682878286, guid: cbd55e765f038479f99fae37271b3c0f, type: 3}
+      propertyPath: _hoverMangnitude
+      value: 5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1125,7 +1137,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5069034531820778830, guid: e1112463800b64af9bf6f0481942d01d, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -4.61572
+      value: -4.606309
       objectReference: {fileID: 0}
     - target: {fileID: 5143259415893603880, guid: e1112463800b64af9bf6f0481942d01d, type: 3}
       propertyPath: m_Name
