@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Scripts/UI/USS/MenuUI.uss?fileID=7433441132597879392&amp;guid=5feb76e7f413e4936b8c16ca3f17fc05&amp;type=3#MenuUI" />
+    <ui:VisualElement name="root" style="flex-grow: 1; background-color: rgba(0, 0, 0, 0.77);">
+        <ui:VisualElement name="VisualElement" style="flex-grow: 1; width: 256px; height: 256px; max-width: 256px; max-height: 256px; left: 212px; top: 64px; background-image: url(&quot;project://database/Assets/GFX/UI/guiBG.png?fileID=21300000&amp;guid=039999bb5ed5d437885b3d8cc74db84a&amp;type=3#guiBG&quot;);">
+            <ui:Label tabindex="-1" text="Are You Sure?" parse-escape-sequences="true" display-tooltip-when-elided="true" style="align-items: auto; align-self: center; font-size: 32px; -unity-font-style: bold; -unity-text-align: upper-center; top: 80px;" />
+            <ui:Button text="YES" parse-escape-sequences="true" display-tooltip-when-elided="true" name="btnYes" style="background-image: url(&quot;project://database/Assets/GFX/UI/CMYK_Buttons_Large.png?fileID=1651142070&amp;guid=8f8e5b1a457c541d7be6feab39a42501&amp;type=3#CMYK_Buttons_Large_4&quot;); width: 96px; height: 32px; max-width: 96px; max-height: 32px; top: 80px; left: 78px; -unity-font-style: bold; font-size: 24px; padding-top: 18px;" />
+            <ui:Button text="NO" parse-escape-sequences="true" display-tooltip-when-elided="true" name="btnNo" enable-rich-text="false" style="background-image: url(&quot;project://database/Assets/GFX/UI/CMYK_Buttons_Large.png?fileID=1651142070&amp;guid=8f8e5b1a457c541d7be6feab39a42501&amp;type=3#CMYK_Buttons_Large_4&quot;); width: 96px; height: 32px; max-width: 96px; max-height: 32px; top: 84px; left: 78px; -unity-font-style: bold; font-size: 24px; -unity-text-align: middle-center; padding-bottom: 10px; padding-top: 18px;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

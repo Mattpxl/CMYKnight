@@ -17,7 +17,7 @@ public class Hover : MonoBehaviour
     {
         if(_canChangeDir) StartCoroutine(setDirection());
     }
-
+    // PUT CLAMP MAGNITUDE ON THESE VECTORS
     private IEnumerator setDirection()
     {
         _canChangeDir = false;

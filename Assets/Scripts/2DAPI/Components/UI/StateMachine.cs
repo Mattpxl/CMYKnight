@@ -2,21 +2,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
-using DataStorage;
+using UnityEngine.InputSystem;
 using Unity.VisualScripting;
+using UnityEngine.SceneManagement;
+using DataStorage;
+using System;
 
 public class StateMachine : MonoBehaviour
 {
     #region Initialization
     [SerializeField] private PlayerControl _playerControl;
-    [SerializeField] private LevelManager _levelManager;
-    //private SceneManager _sceneManager;
-    private JSONConverter _jsonConverter;
+    private bool _isPaused;
 
     private void Awake()
     {
-        //_sceneManager = GetComponent<SceneManager>();
-        _jsonConverter = new JSONConverter();
         // RuneTimeUI
         _heart = _runtimeUI.rootVisualElement.Q("veHeart");
         _key  = _runtimeUI.rootVisualElement.Q("veKey");
@@ -34,182 +33,195 @@ public class StateMachine : MonoBehaviour
         _start = _mainMenu.rootVisualElement.Q("btnStart") as Button;
         _settingsMM = _mainMenu.rootVisualElement.Q("btnSettingsMM") as Button;
         _quitMM = _mainMenu.rootVisualElement.Q("btnQuitMM") as Button;
+        // Confirmation Menu
+        _yes = _confirmationMenu.rootVisualElement.Q("btnYes") as Button;
+        _no = _confirmationMenu.rootVisualElement.Q("btnNo") as Button;
         // Settings Menu
         _exitSM  = _settingsMenu.rootVisualElement.Q("btnExitSM") as Button;
         _mute = _settingsMenu.rootVisualElement.Q("tglMute") as Toggle;
         _sound = _settingsMenu.rootVisualElement.Q("sdrSound") as Slider;
         _music = _settingsMenu.rootVisualElement.Q("sdrMusic") as Slider;
         _fullscreen = _settingsMenu.rootVisualElement.Q("tglFullScreen") as Toggle;
-        _resolution = _settingsMenu.rootVisualElement.Q("drpResolution") as PopupField<DropdownMenu>;
-        _quality = _settingsMenu.rootVisualElement.Q("drpQuality") as PopupField<DropdownMenu>;  
+        _resolution = _settingsMenu.rootVisualElement.Q("drpResolution") as DropdownField;
     }
 
     private void Start()
     {
-        _runtimeUI.gameObject.SetActive(true);
-        _pauseMenu.gameObject.SetActive(false);
-        _endscreen.gameObject.SetActive(false);
-        _mainMenu.gameObject.SetActive(true);
-        _settingsMenu.gameObject.SetActive(false);
-        // get values from JSONConverter
-    }
+        _isPaused = _playerControl._isPaused;
+        _runtimeUI.rootVisualElement.style.visibility = Visibility.Visible;
+        _mainMenu.rootVisualElement.style.visibility = Visibility.Visible;
+        _pauseMenu.rootVisualElement.style.visibility = Visibility.Hidden;
+        _endscreen.rootVisualElement.style.visibility = Visibility.Hidden;
+        _confirmationMenu.rootVisualElement.style.visibility = Visibility.Hidden;
+        _settingsMenu.rootVisualElement.style.visibility = Visibility.Hidden;
+            // Setting Menu
+            _exitSM.RegisterCallback<ClickEvent>((evt) => 
+            { 
+                _settingsMenu.rootVisualElement.style.visibility = Visibility.Hidden;
+                // save settings data changes
+            });
 
-    private void Update(){
-        // Setting Menu
-        if(_settingsMenu.gameObject.activeInHierarchy){
-        _exitSM.RegisterCallback<ClickEvent>(OnUIClick);
-        _mute.RegisterCallback<ClickEvent>(OnUIClick);
-        _sound.RegisterCallback<ClickEvent>(OnUIClick);
-        _music.RegisterCallback<ClickEvent>(OnUIClick);
-        _fullscreen.RegisterCallback<ClickEvent>(OnUIClick);
-       // _resolution.RegisterCallback<ClickEvent>(OnUIClick);
-       // _quality.RegisterCallback<ClickEvent>(OnUIClick);
-        }
-        //MainMenu
-        else if(_mainMenu.gameObject.activeInHierarchy){
-        _start.RegisterCallback<ClickEvent>(OnUIClick);
-        _settingsMM.RegisterCallback<ClickEvent>(OnUIClick);
-        _quitMM.RegisterCallback<ClickEvent>(OnUIClick);
-        }
-        // End Screen
-        else if(_endscreen.gameObject.activeInHierarchy){
-            _quit.RegisterCallback<ClickEvent>(OnUIClick);
-            _restart.RegisterCallback<ClickEvent>(OnUIClick);
-        }
-        // PauseMenu
-        else if(_pauseMenu.gameObject.activeInHierarchy){
-            _continue.RegisterCallback<ClickEvent>(OnUIClick);
-            _settingsPM.RegisterCallback<ClickEvent>(OnUIClick);
-            _mainMenuPM.RegisterCallback<ClickEvent>(OnUIClick);
-        }
-    }
+            // Confirmation menu
+            _yes.RegisterCallback<ClickEvent>((evt) => 
+            { 
+                _confirmationMenu.rootVisualElement.style.visibility = Visibility.Hidden;
+                _mainMenu.rootVisualElement.style.visibility = Visibility.Visible;
+                // Save
+            });
+            _no.RegisterCallback<ClickEvent>((evt) => 
+            { 
+                _confirmationMenu.rootVisualElement.style.visibility = Visibility.Hidden;
+            });
+        
+            //MainMenu
+            _start.RegisterCallback<ClickEvent>((evt) => 
+            { 
+                _mainMenu.rootVisualElement.style.visibility = Visibility.Hidden;
+                if (_isPaused == true)
+                { 
+                    _isPaused = false; 
+                    _playerControl._isPaused = _isPaused;
+                }
+                _pauseMenu.rootVisualElement.style.visibility = Visibility.Hidden;
+                _endscreen.rootVisualElement.style.visibility = Visibility.Hidden;
+                _confirmationMenu.rootVisualElement.style.visibility = Visibility.Hidden;
+                _settingsMenu.rootVisualElement.style.visibility = Visibility.Hidden;
+                _playerControl.spawn();
+            });
+            _settingsMM.RegisterCallback<ClickEvent>((evt) => 
+            { 
+                _settingsMenu.rootVisualElement.style.visibility = Visibility.Visible;
+            });
+            _quitMM.RegisterCallback<ClickEvent>((evt) => 
+            { 
+               SceneManager.LoadScene(0);
+            });
+        
+            // End Screen
+            _quit.RegisterCallback<ClickEvent>((evt) => 
+            { 
+                _confirmationMenu.rootVisualElement.style.visibility = Visibility.Visible;
+            });
+            _restart.RegisterCallback<ClickEvent>((evt) => 
+            { 
+                _endscreen.rootVisualElement.style.visibility = Visibility.Hidden;
+                if (_isPaused == true)
+                { 
+                    _isPaused = false; 
+                    _playerControl._isPaused = _isPaused;
+                }
+                _playerControl.respawn();
+            });
+        
+            // PauseMenu
+            _continue.RegisterCallback<ClickEvent>((evt) => 
+            { 
+                _pauseMenu.rootVisualElement.style.visibility = Visibility.Hidden; 
+                if (_isPaused == true) 
+                { 
+                    _isPaused = false; 
+                    _playerControl._isPaused = _isPaused;
+                }
+            });
+            _settingsPM.RegisterCallback<ClickEvent>((evt) => 
+            { 
+                _settingsMenu.rootVisualElement.style.visibility = Visibility.Visible;
+            });
+            _mainMenuPM.RegisterCallback<ClickEvent>((evt) => 
+            { 
+                _confirmationMenu.rootVisualElement.style.visibility = Visibility.Visible;
+                _pauseMenu.rootVisualElement.style.visibility = Visibility.Hidden;
+            });
+            // Settings Menu Values
+            _mute.value = Convert.ToBoolean((int)JSONConverter.jsonConverter.getDataObject("mute"));
+            _mute.RegisterValueChangedCallback((evt) =>
+            {
+                AudioManager._instance.toggleMusic();
+                AudioManager._instance.toggleSfx();
+            });
+            _sound.value = JSONConverter.jsonConverter.getDataObject("sound");
+            _sound.RegisterValueChangedCallback((evt) => 
+            {
+                AudioManager._instance.sfxVolume(_sound.value);
+            });
+            _music.value = JSONConverter.jsonConverter.getDataObject("music");
+            _music.RegisterValueChangedCallback((evt) => 
+            {
+                AudioManager._instance.musicVolume(_music.value);
+            });
+            _fullscreen.value = Convert.ToBoolean((int)JSONConverter.jsonConverter.getDataObject("fullscreen"));
+            _fullscreen.RegisterValueChangedCallback((evt) => 
+            {
+                Screen.fullScreen = _fullscreen.value;
+            });
+            _resolutions = Screen.resolutions;
+            _widths = new int[_resolutions.Length];
+            _heights = new int[_resolutions.Length];
 
-    private void OnEnable() 
-    {
-          // Setting Menu
-        if(_settingsMenu.gameObject.activeInHierarchy){
-        _exitSM.RegisterCallback<ClickEvent>(OnUIClick);
-        _mute.RegisterCallback<ClickEvent>(OnUIClick);
-        _sound.RegisterCallback<ClickEvent>(OnUIClick);
-        _music.RegisterCallback<ClickEvent>(OnUIClick);
-        _fullscreen.RegisterCallback<ClickEvent>(OnUIClick);
-       // _resolution.RegisterCallback<ClickEvent>(OnUIClick);
-       // _quality.RegisterCallback<ClickEvent>(OnUIClick);
-        }
-        //MainMenu
-        else if(_mainMenu.gameObject.activeInHierarchy){
-        _start.RegisterCallback<ClickEvent>(OnUIClick);
-        _settingsMM.RegisterCallback<ClickEvent>(OnUIClick);
-        _quitMM.RegisterCallback<ClickEvent>(OnUIClick);
-        }
-        // End Screen
-        else if(_endscreen.gameObject.activeInHierarchy){
-            _quit.RegisterCallback<ClickEvent>(OnUIClick);
-            _restart.RegisterCallback<ClickEvent>(OnUIClick);
-        }
-        // PauseMenu
-        else if(_pauseMenu.gameObject.activeInHierarchy){
-            _continue.RegisterCallback<ClickEvent>(OnUIClick);
-            _settingsPM.RegisterCallback<ClickEvent>(OnUIClick);
-            _mainMenuPM.RegisterCallback<ClickEvent>(OnUIClick);
-        }
+            for(int i = 0; i < _resolutions.Length; i++)
+            {
+            _resolution.choices.Add(_resolutions[i].width + " x " + _resolutions[i].height);
+            _widths[i] = _resolutions[i].width;
+            _heights[i] = _resolutions[i].height;
+            if
+            (
+                _resolutions[i].width == Screen.currentResolution.width &&
+                _resolutions[i].height == Screen.currentResolution.height
+            )
+            {
+                _resIndex = i;
+            }
+            }
+            _resolution.value = _resolution.choices[Convert.ToInt32(JSONConverter.jsonConverter.getDataObject("resolution"))];
+            _resolution.RegisterValueChangedCallback((evt) => 
+            {
+                Screen.SetResolution(_widths[_resolution.index],_heights[_resolution.index], Screen.fullScreen);
+                _resolution.value = _resolution.choices[_resolution.index];
+                _saveIndex = _resolution.index;
+            });
     }
 
     private void OnApplicationQuit()
     {
-        // save settings values and json values from player data
+        
+        JSONConverter.jsonConverter.writeData((float)Convert.ToInt32(_mute.value), "mute");
+        JSONConverter.jsonConverter.writeData(_sound.value, "sound");
+        JSONConverter.jsonConverter.writeData(_music.value, "music");
+        JSONConverter.jsonConverter.writeData((float)Convert.ToInt32(_fullscreen.value), "fullscreen");
+        JSONConverter.jsonConverter.writeData((float)Convert.ToInt32(_saveIndex), "resolution");
     }
     #endregion Initialization
 
-    #region Input
-
-    private void OnUIClick(ClickEvent evt)
-    {
-        // Pause Menu
-        if(evt.currentTarget == _continue)
-        {
-            _pauseMenu.gameObject.SetActive(false);
-            // !_isPaused
-        }
-        else if (evt.currentTarget == _settingsPM)
-        {
-            _settingsMenu.gameObject.SetActive(true);
-        }
-        else if (evt.currentTarget == _mainMenuPM)
-        {
-            _mainMenu.gameObject.SetActive(true);
-            _pauseMenu.gameObject.SetActive(false);
-            // are you sure? You Will Have To Restart This World Menu
-            // save data
-        }
-        // End Screen
-        if(evt.currentTarget == _quit)
-        {
-            _mainMenu.gameObject.SetActive(true);
-            _endscreen.gameObject.SetActive(false);
-            // are you sure? You Will Have To Restart This World Menu
-        }
-        else if (evt.currentTarget == _restart)
-        {
-            _endscreen.gameObject.SetActive(false);
-            // rspawn player
-            // unpause
-        }
-        // Main Menu
-        if(evt.currentTarget == _start)
-        {
-            _mainMenu.gameObject.SetActive(false);
-            // unpause
-            // spawn player
-        }
-        else if (evt.currentTarget == _settingsMM)
-        {
-            _settingsMenu.gameObject.SetActive(true);
-        }
-        else if (evt.currentTarget == _quitMM)
-        {
-            // return to splash screen scene
-        }
-        // Settings Menu
-        if(evt.currentTarget == _exitSM)
-        {
-            _settingsMenu.gameObject.SetActive(false);
-        }
-        if(evt.currentTarget == _mute)
-        {
-            
-        }
-        else if(evt.currentTarget == _sound)
-        {
-
-        }
-        else if(evt.currentTarget == _music)
-        {
-
-        }
-        else if(evt.currentTarget == _fullscreen)
-        {
-
-        }
-        else if(evt.currentTarget == _resolution)
-        {
-
-        }
-        else if(evt.currentTarget == _quality)
-        {
-
-        }
-    }
-    #endregion Input
-
     #region Functionality
 
-    // create OnPause Function to pause everything
+    private void Update()
+    {
+        _isPaused = _playerControl._isPaused;
+        if 
+        (
+            _settingsMenu.rootVisualElement.style.visibility == Visibility.Visible || 
+            _mainMenu.rootVisualElement.style.visibility == Visibility.Visible ||
+            _endscreen.rootVisualElement.style.visibility == Visibility.Visible ||
+            _confirmationMenu.rootVisualElement.style.visibility == Visibility.Visible
+        )
+        {
+            _isPaused = true;
+            _playerControl._isPaused = _isPaused;
+        }
+        Time.timeScale = _isPaused == true ? 0f : 1f;
+        _pauseMenu.rootVisualElement.style.visibility = _isPaused == true ? Visibility.Visible : Visibility.Hidden;
+        
+        if (_playerControl._isDead) 
+        {
+            _endscreen.rootVisualElement.style.visibility = Visibility.Visible;
+        }
+        else _endscreen.rootVisualElement.style.visibility = Visibility.Hidden;
+
+    }
 
     #endregion functionality
 
     #region RuntimeUI
-
     [SerializeField] private UIDocument _runtimeUI;
     private VisualElement _heart;
     private VisualElement _key;
@@ -242,6 +254,15 @@ public class StateMachine : MonoBehaviour
 
     #endregion MainMenu
 
+    #region ConfirmationMenu
+
+    [SerializeField] private UIDocument _confirmationMenu;
+
+    private Button _yes;
+    private Button _no;
+
+    #endregion ConfirmationMenu
+
     #region SettingMenu
     [SerializeField] private UIDocument _settingsMenu;
     private VisualElement _settingsPanel;
@@ -250,9 +271,12 @@ public class StateMachine : MonoBehaviour
     private Slider _sound;
     private Slider _music;
     private Toggle _fullscreen;
-    private PopupField<DropdownMenu> _resolution;
-    private PopupField<DropdownMenu>  _quality;
+    private DropdownField _resolution;
     private Resolution[] _resolutions;
+    private int _resIndex;
+    private int _saveIndex;
+    private int[] _widths;
+    private int[] _heights;
 
     #endregion SettingsMenu
 }

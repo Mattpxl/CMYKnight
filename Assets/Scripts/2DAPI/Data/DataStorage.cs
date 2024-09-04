@@ -13,35 +13,36 @@ namespace DataStorage
     #region Serialization
     public class JSONConverter
     {
-        public static JSONConverter jsonConverter;
-        public void writeData(object obj, string id)
+        //Application.persistentDataPath
+        public static JSONConverter jsonConverter = new();
+        public void writeData(float obj, string id)
         {
             string _currentDataString = JsonUtility.ToJson(obj);
-            using StreamWriter streamWriter = new StreamWriter(Application.persistentDataPath + id + ".json");
+            using StreamWriter streamWriter = new StreamWriter(Application.persistentDataPath + "/" + id + ".json");
             streamWriter.Write(_currentDataString);
         }
-        public void readData(object obj, string id)
+        public void readData(float obj, string id)
         {
-            using StreamReader streamReader = new StreamReader(Application.persistentDataPath + id + ".json");
+            using StreamReader streamReader = new StreamReader(Application.persistentDataPath + "/" + id + ".json");
             string savedDataString = streamReader.ReadToEnd();
-            obj = JsonUtility.FromJson<object>(savedDataString);
+            obj = JsonUtility.FromJson<float>(savedDataString);
             id = JsonUtility.ToJson(obj);
         }
-        public string getJSON(string id)
+        public string getJSON(float id)
         {
-            using StreamReader streamReader = new StreamReader(Application.persistentDataPath + id + ".json");
+            using StreamReader streamReader = new StreamReader(Application.persistentDataPath + "/" + id + ".json");
             string savedDataString = streamReader.ReadToEnd();
-            object obj = JsonUtility.FromJson<object>(savedDataString);
+            float obj = JsonUtility.FromJson<float>(savedDataString);
             return JsonUtility.ToJson(obj);
         }
-        public object getDataObject(string id)
+        public float getDataObject(string id)
         {
-            using StreamReader streamReader = new StreamReader(Application.persistentDataPath + id + ".json");
+            using StreamReader streamReader = new StreamReader(Application.persistentDataPath + "/" + id + ".json");
             string savedDataString = streamReader.ReadToEnd();
-            return JsonUtility.FromJson<object>(savedDataString);
+            return JsonUtility.FromJson<float>(savedDataString);
         }
 
-        public void overwriteDataObject(object obj, string json)
+        public void overwriteDataObject(float obj, string json)
         {
             JsonUtility.FromJsonOverwrite(json, obj);
         }

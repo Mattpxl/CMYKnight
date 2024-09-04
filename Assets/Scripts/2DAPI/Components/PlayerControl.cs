@@ -5,6 +5,7 @@ using UnityEngine.InputSystem;
 using DataStorage;
 using System.Runtime.CompilerServices;
 using System;
+using UnityEngine.AI;
 
 /// <summary>
 /// Player Control for 2D Platformer
@@ -35,7 +36,6 @@ public class PlayerControl : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody2D>();
         _collider = GetComponent<CapsuleCollider2D>();
         _animator = GetComponent<Animator>();
-        _sqlConverter = new SQLConverter();
     }
 
     #endregion Initialization
@@ -47,43 +47,13 @@ public class PlayerControl : MonoBehaviour
     /// > Add _tableEntry = loadPlayerValue(_playerTableEntry)._intValue;._floatValue;._stringValue; to Start()
     /// </summary>
    #region Data
-    private SQLConverter _sqlConverter;
-    private String[] _valueNames;
-    private String[] _valueTypes;
-    private ValueTable _playerData;
+    private static PlayerData _playerData = new PlayerData();
     private TableEntry[] _playerDataSet;
-    private TableEntry[] _playerAccessDataSet;
-    private static TableEntry _playerTableID;
-    private static TableEntry _playerLevel, _playerLevelDefault;
-    private static TableEntry _playerLives, _playerLivesDefault;
-    private static TableEntry _playerKeys, _playerKeysDefault;
-     private void initializeTable()
+    private static TableEntry _playerLevel;
+    private static TableEntry _playerLives;
+    private static TableEntry _playerKeys;
+    private void initializeTable()
     {
-        _playerData = new ValueTable
-        (
-            "PlayerData",
-            _valueNames = new String[3]
-            {
-                "Level",
-                "Lives", 
-                "Keys",
-            },
-            _valueTypes = new String[3]
-            {
-                "INT",
-                "REAL", 
-                "REAL",
-            }
-        );
-        _sqlConverter.generateTable(_playerData);
-
-        // PRIMARY KEY ACCESS
-        _playerTableID = new TableEntry
-        (
-            "PlayerData_id",
-            "INT",
-            1
-        );
         _playerLevel = new TableEntry
         (
             "Level",
@@ -108,65 +78,18 @@ public class PlayerControl : MonoBehaviour
             _playerLives,
             _playerKeys
         };
-
-        _playerLevelDefault = new TableEntry
-        (
-            "Level",
-            "INT",
-            1
-        );
-        _playerLivesDefault = new TableEntry
-        (
-            "Lives",
-            "REAL",
-            3
-        );
-        _playerKeysDefault = new TableEntry
-        (
-            "Keys",
-            "REAL",
-            0
-        );
-        _playerAccessDataSet = new TableEntry[4]
-        {
-            _playerTableID,
-            _playerLevelDefault,
-            _playerLivesDefault,
-            _playerKeysDefault
-        };
-    }
-     public TableEntry loadPlayerValue(TableEntry entry)
-    {
-        TableEntry defaultValue = new TableEntry();
-        foreach (TableEntry e in _playerAccessDataSet)
-        {
-            if (e._valueName == entry._valueName) defaultValue = e;
-        }
-        TableEntry value = new TableEntry();
-        switch (entry._valueType)
-        {
-            case "TEXT":
-                value = _sqlConverter.getValue(_playerData, entry, _playerTableID)._stringValue == null ? defaultValue : _sqlConverter.getValue(_playerData, entry, _playerTableID);
-                break;
-            case "REAL":
-                value = _sqlConverter.getValue(_playerData, entry, _playerTableID)._floatValue == 0 ? defaultValue : _sqlConverter.getValue(_playerData, entry, _playerTableID);
-                break;
-            case "INT":
-                value = _sqlConverter.getValue(_playerData, entry, _playerTableID)._intValue == 0 ? defaultValue : _sqlConverter.getValue(_playerData, entry, _playerTableID);
-                break;
-        }
-        return value;
     }
     private void Start()
     {
         initializeTable();
-        _level = loadPlayerValue(_playerLevel)._intValue;
-        _lives = loadPlayerValue(_playerLives)._floatValue;
-        _keys = loadPlayerValue(_playerKeys)._floatValue;
+        _level = _playerData.loadPlayerValue(_playerLevel)._intValue;
+        _lives = _playerData.loadPlayerValue(_playerLives)._floatValue;
+        _keys = _playerData.loadPlayerValue(_playerKeys)._floatValue;
+        spawn();
     }
     private void OnApplicationQuit()
     {
-        _sqlConverter.updateTable(_playerData, _playerDataSet, _playerTableID);
+        _playerData.save(_playerDataSet);
     }
 
    #endregion Data
@@ -177,10 +100,10 @@ public class PlayerControl : MonoBehaviour
     #region Status
 
     [Header("Status")]
-    private int _level = 0; // get from scene manager 
+    public int _level = 0; // get from scene manager 
     [SerializeField] private float _lives;
     [SerializeField] private float _keys;
-    private bool _isDead = false;
+    public bool _isDead = false;
 
     private void takeDamage() 
     { 
@@ -193,9 +116,14 @@ public class PlayerControl : MonoBehaviour
             _isDead = true; 
             _lives = 0f; 
         } 
-        if(_isDead) respawn();
     }
-    private void respawn() 
+    public void spawn() 
+    { 
+        transform.position = _levelManager._spawnPoint.position;
+        _isDead = false; 
+        if (_lives <= 0f) _lives = 3f;
+    }
+    public void respawn() 
     { 
         transform.position = _levelManager._spawnPoint.position; 
         _lives = 3f;
@@ -229,6 +157,7 @@ public class PlayerControl : MonoBehaviour
     /// Recieve Input from Unity Input System
     /// </summary>
     #region Input
+    public bool _isPaused = true;
     private void OnMove(InputValue inputValue)
     {
         _movementInput = inputValue.Get<Vector2>() == Vector2.zero ? Vector2.zero : inputValue.Get<Vector2>();
@@ -254,6 +183,10 @@ public class PlayerControl : MonoBehaviour
         // clamped fall speed - allows landing on platforms while falling easier
         // edge detection for ceilings - move player slightly over and continue upward motion
         // catch edges when jumping on platfroms and nudge up
+    }
+    private void OnPause()
+    {
+        _isPaused = !_isPaused;
     }
 
     #endregion Input
