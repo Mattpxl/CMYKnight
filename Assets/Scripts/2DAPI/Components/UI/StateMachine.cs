@@ -7,6 +7,7 @@ using Unity.VisualScripting;
 using UnityEngine.SceneManagement;
 using DataStorage;
 using System;
+using UnityEngine.EventSystems;
 
 public class StateMachine : MonoBehaviour
 {
@@ -19,10 +20,10 @@ public class StateMachine : MonoBehaviour
         // RuneTimeUI
         _heart = _runtimeUI.rootVisualElement.Q("veHeart");
         _key  = _runtimeUI.rootVisualElement.Q("veKey");
-        _bgPause = _pauseMenu.rootVisualElement.Q("bgPause");
-        _heartLabel = _bgPause.Q("txtHeart") as TextField;
-        _keyLabel = _bgPause.Q("txtKey") as TextField;
+        _heartLabel = _runtimeUI.rootVisualElement.Q("txtHeart") as TextField;
+        _keyLabel = _runtimeUI.rootVisualElement.Q("txtKey") as TextField;
         // PauseMenu
+        _bgPause = _pauseMenu.rootVisualElement.Q("bgPause");
         _continue = _pauseMenu.rootVisualElement.Q("btnContinue") as Button;
         _settingsPM = _pauseMenu.rootVisualElement.Q("btnSettingsPM") as Button;
         _mainMenuPM = _pauseMenu.rootVisualElement.Q("btnMenuPM")  as Button;
@@ -43,6 +44,7 @@ public class StateMachine : MonoBehaviour
         _music = _settingsMenu.rootVisualElement.Q("sdrMusic") as Slider;
         _fullscreen = _settingsMenu.rootVisualElement.Q("tglFullScreen") as Toggle;
         _resolution = _settingsMenu.rootVisualElement.Q("drpResolution") as DropdownField;
+
     }
 
     private void Start()
@@ -58,24 +60,29 @@ public class StateMachine : MonoBehaviour
             _exitSM.RegisterCallback<ClickEvent>((evt) => 
             { 
                 _settingsMenu.rootVisualElement.style.visibility = Visibility.Hidden;
+                AudioManager._instance.playSfxUI("back");
                 // save settings data changes
             });
 
             // Confirmation menu
             _yes.RegisterCallback<ClickEvent>((evt) => 
             { 
+                AudioManager._instance._sfxSourceUI.Stop();
+                AudioManager._instance.playSfxUI("quit");
                 _confirmationMenu.rootVisualElement.style.visibility = Visibility.Hidden;
                 _mainMenu.rootVisualElement.style.visibility = Visibility.Visible;
                 // Save
             });
             _no.RegisterCallback<ClickEvent>((evt) => 
             { 
+                AudioManager._instance.playSfxUI("back");
                 _confirmationMenu.rootVisualElement.style.visibility = Visibility.Hidden;
             });
         
             //MainMenu
             _start.RegisterCallback<ClickEvent>((evt) => 
             { 
+                AudioManager._instance.playSfxUI("start");
                 _mainMenu.rootVisualElement.style.visibility = Visibility.Hidden;
                 if (_isPaused == true)
                 { 
@@ -90,20 +97,24 @@ public class StateMachine : MonoBehaviour
             });
             _settingsMM.RegisterCallback<ClickEvent>((evt) => 
             { 
+                AudioManager._instance.playSfxUI("forward");
                 _settingsMenu.rootVisualElement.style.visibility = Visibility.Visible;
             });
             _quitMM.RegisterCallback<ClickEvent>((evt) => 
             { 
+                AudioManager._instance.playSfxUI("quit");
                SceneManager.LoadScene(0);
             });
         
             // End Screen
             _quit.RegisterCallback<ClickEvent>((evt) => 
             { 
+                AudioManager._instance.playSfxUI("forward");
                 _confirmationMenu.rootVisualElement.style.visibility = Visibility.Visible;
             });
             _restart.RegisterCallback<ClickEvent>((evt) => 
             { 
+                //AudioManager._instance.playSfxUI("start");
                 _endscreen.rootVisualElement.style.visibility = Visibility.Hidden;
                 if (_isPaused == true)
                 { 
@@ -116,6 +127,7 @@ public class StateMachine : MonoBehaviour
             // PauseMenu
             _continue.RegisterCallback<ClickEvent>((evt) => 
             { 
+                AudioManager._instance.playSfxUI("forward");
                 _pauseMenu.rootVisualElement.style.visibility = Visibility.Hidden; 
                 if (_isPaused == true) 
                 { 
@@ -125,10 +137,12 @@ public class StateMachine : MonoBehaviour
             });
             _settingsPM.RegisterCallback<ClickEvent>((evt) => 
             { 
+                AudioManager._instance.playSfxUI("forward");
                 _settingsMenu.rootVisualElement.style.visibility = Visibility.Visible;
             });
             _mainMenuPM.RegisterCallback<ClickEvent>((evt) => 
             { 
+                AudioManager._instance.playSfxUI("forward");
                 _confirmationMenu.rootVisualElement.style.visibility = Visibility.Visible;
                 _pauseMenu.rootVisualElement.style.visibility = Visibility.Hidden;
             });
@@ -179,6 +193,32 @@ public class StateMachine : MonoBehaviour
                 _resolution.value = _resolution.choices[_resolution.index];
                 _saveIndex = _resolution.index;
             });
+
+            if (_settingsMenu.rootVisualElement.style.visibility == Visibility.Visible){
+            EventSystem.SetUITookitEventSystemOverride(null, true, false);
+            EventSystem.current.SetSelectedGameObject(GameObject.Find("Settings Menu"));
+            _exitSM.Focus();
+        }
+        else if (_confirmationMenu.rootVisualElement.style.visibility == Visibility.Visible){
+            EventSystem.SetUITookitEventSystemOverride(null, true, false);
+            EventSystem.current.SetSelectedGameObject(GameObject.Find("ConfirmationMenu"));
+            _no.Focus();
+        }
+        else if (_mainMenu.rootVisualElement.style.visibility == Visibility.Visible){ 
+            EventSystem.SetUITookitEventSystemOverride(null, true, false);
+            EventSystem.current.SetSelectedGameObject(GameObject.Find("MainMenu"));
+            _start.Focus();
+        }
+        else if (_endscreen.rootVisualElement.style.visibility == Visibility.Visible){ 
+            EventSystem.SetUITookitEventSystemOverride(null, true, false);
+            EventSystem.current.SetSelectedGameObject(GameObject.Find("EndScreen"));
+            _restart.Focus();
+        }
+        else if (_pauseMenu.rootVisualElement.style.visibility == Visibility.Visible){ 
+            EventSystem.SetUITookitEventSystemOverride(null, true, false);
+            EventSystem.current.SetSelectedGameObject(GameObject.Find("PauseMenu"));
+            _continue.Focus();
+        } else EventSystem.SetUITookitEventSystemOverride(null, false, false);
     }
 
     private void OnApplicationQuit()
@@ -196,6 +236,20 @@ public class StateMachine : MonoBehaviour
 
     private void Update()
     {
+        // runtime UI Values
+            _heartLabel.label = "x" + _playerControl._lives;
+            if(_playerControl._keys == 0)
+            {
+                _key.style.visibility = Visibility.Hidden;
+                _keyLabel.style.visibility = Visibility.Hidden;
+            }
+            else 
+            {
+                _key.style.visibility = Visibility.Visible;
+                _keyLabel.style.visibility = Visibility.Visible;
+                _keyLabel.label = "x" + _playerControl._keys;
+
+            }
         _isPaused = _playerControl._isPaused;
         if 
         (
@@ -217,6 +271,8 @@ public class StateMachine : MonoBehaviour
         }
         else _endscreen.rootVisualElement.style.visibility = Visibility.Hidden;
 
+        if(_isPaused) EventSystem.SetUITookitEventSystemOverride(null, true, false);
+        else EventSystem.SetUITookitEventSystemOverride(null, false, false);
     }
 
     #endregion functionality

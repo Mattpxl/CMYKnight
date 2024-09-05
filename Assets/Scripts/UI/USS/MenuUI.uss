@@ -24,4 +24,5 @@
     -unity-font: url("project://database/Assets/Settings/UI/Font/Silver.ttf?fileID=12800000&guid=78e26553322994f81a0b9a0cd6e99425&type=3#Silver");
     -unity-font-definition: url("project://database/Assets/Settings/UI/Font/Silver%20SDF.asset?fileID=11400000&guid=8f38c651cf8534d64ad963597c2363db&type=2#Silver SDF");
     color: rgb(255, 255, 255);
+    -unity-background-image-tint-color: rgb(255, 255, 255);
 }

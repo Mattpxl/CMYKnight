@@ -303,7 +303,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _sfxUI: []
-  _sfxPlayer: []
+  _sfxPlayer:
+  - _name: step0
+    _sound: {fileID: 8300000, guid: 1b4b799d8f3c74723849e8c19525e01c, type: 3}
+  - _name: step1
+    _sound: {fileID: 8300000, guid: fb793344e0c144cafaa8addd144386d7, type: 3}
+  - _name: land
+    _sound: {fileID: 8300000, guid: 3c95eab97f64645af9bb5d4453ffd3f0, type: 3}
+  - _name: spawn
+    _sound: {fileID: 8300000, guid: c7df701fd449c415f8c621cfb8dcf6d5, type: 3}
+  - _name: heart
+    _sound: {fileID: 8300000, guid: 01faebec3346c41db83d55595ae7d98d, type: 3}
   _music: []
   _sfxSource: {fileID: 8997280925813337853}
   _musicSource: {fileID: 2074952934020799783}

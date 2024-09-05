@@ -33,6 +33,7 @@ public class PlayerControl : MonoBehaviour
 
     private void Awake()
     {
+        // Instantiate(prefab);
         _rigidbody = GetComponent<Rigidbody2D>();
         _collider = GetComponent<CapsuleCollider2D>();
         _animator = GetComponent<Animator>();
@@ -85,7 +86,6 @@ public class PlayerControl : MonoBehaviour
         _level = _playerData.loadPlayerValue(_playerLevel)._intValue;
         _lives = _playerData.loadPlayerValue(_playerLives)._floatValue;
         _keys = _playerData.loadPlayerValue(_playerKeys)._floatValue;
-        spawn();
     }
     private void OnApplicationQuit()
     {
@@ -101,8 +101,8 @@ public class PlayerControl : MonoBehaviour
 
     [Header("Status")]
     public int _level = 0; // get from scene manager 
-    [SerializeField] private float _lives;
-    [SerializeField] private float _keys;
+    [SerializeField] public float _lives;
+    [SerializeField] public float _keys;
     public bool _isDead = false;
 
     private void takeDamage() 
@@ -116,6 +116,17 @@ public class PlayerControl : MonoBehaviour
             _isDead = true; 
             _lives = 0f; 
         } 
+        if (_isDead == true) AudioManager._instance.playSfxPlayer("dead");
+    }
+
+    public void dead()
+    {
+        if(_isDead)
+        {
+            AudioManager._instance._sfxSourceWorld.Stop();
+            AudioManager._instance._sfxSourceEnemy.Stop();
+            AudioManager._instance._sfxSourceItem.Stop();
+        }
     }
     public void spawn() 
     { 
@@ -125,6 +136,8 @@ public class PlayerControl : MonoBehaviour
     }
     public void respawn() 
     { 
+        AudioManager._instance._sfxSourcePlayer.Stop();
+        AudioManager._instance.playSfxPlayer("spawn");
         transform.position = _levelManager._spawnPoint.position; 
         _lives = 3f;
         _isDead = false; 
@@ -141,15 +154,19 @@ public class PlayerControl : MonoBehaviour
    // private void Update(){ } // runs on pause
     private void FixedUpdate()
     {
+        // Collisions
         groundCheck();
         ceilingCheck();
         collectCheck();
-        hazardCheck();
         interactableCheck();
+        hazardCheck();
+        // Movement
         move();
-        if (_isJumping) jump();
-        // if(!_isJumping) crouch();
-        // if (_isJumping && !_isCrouching) jump(); 
+        jump();
+        fall();
+        land();
+        //status
+        dead();
     }
     #endregion Updates
     
@@ -164,6 +181,13 @@ public class PlayerControl : MonoBehaviour
         // animation
         _animator.SetFloat("xVelocity", inputValue.Get<Vector2>().x == -1f ? 1 : inputValue.Get<Vector2>().x);
 
+        if(isGrounded)
+        switch(UnityEngine.Random.Range(0,1)) 
+        { 
+            case 0: AudioManager._instance.playSfxPlayer("step0"); break; 
+            case 1: AudioManager._instance.playSfxPlayer("step1"); break; 
+            default: break;
+        }
         // flip
         if (inputValue.Get<Vector2>().x != 0f && inputValue.Get<Vector2>().x < 0f)
         {
@@ -187,6 +211,20 @@ public class PlayerControl : MonoBehaviour
     private void OnPause()
     {
         _isPaused = !_isPaused;
+
+        if(_isPaused == false)
+        {
+            AudioManager._instance.playSfxUI("unpause");
+            AudioManager._instance._sfxSourcePlayer.Stop();
+            AudioManager._instance._sfxSourceWorld.Stop();
+            AudioManager._instance._sfxSourceEnemy.Stop();
+            AudioManager._instance._sfxSourceItem.Stop();
+        }
+        else 
+        {
+            AudioManager._instance._sfxSourcePlayer.Stop();
+            AudioManager._instance.playSfxUI("pause");
+        }
     }
 
     #endregion Input
@@ -220,10 +258,12 @@ public class PlayerControl : MonoBehaviour
     [Header("Vertical Movement")]
     [SerializeField] private float _jumpForce;
     [SerializeField] private float _jumpMagnitude;
+    private bool _isFalling = false;
     private bool _isJumping = false;
     private void jump()
     {
-       // _rigidbody.velocity += _jumpForce * Vector2.up;
+        if (_isJumping) {
+        AudioManager._instance.playSfxPlayer("jump");
         _rigidbody.velocity = Vector2.ClampMagnitude 
         (
             Vector2.SmoothDamp
@@ -236,6 +276,19 @@ public class PlayerControl : MonoBehaviour
             _jumpMagnitude
         );
         _isJumping = false;
+        }
+    }
+    private void fall()
+    {
+        if(isGrounded == false && _rigidbody.velocity.y < 0) _isFalling = true;
+    }
+    private void land()
+    {
+        if (isGrounded && _isFalling) 
+        {
+            AudioManager._instance.playSfxPlayer("land");
+            _isFalling = false;
+        }
     }
 
     #endregion Vertical Movement
@@ -251,7 +304,6 @@ public class PlayerControl : MonoBehaviour
     [Header("Collisions")]
     [SerializeField] private Transform groundCheckObj;
     [SerializeField] private Transform ceilingCheckObj;
-    private ContactFilter2D _layerFilterCollect, _layerFilterInteract;
     private const float radius = 0.2f;
     private bool isGrounded, wasGrounded, hitCeiling;
 
@@ -276,37 +328,37 @@ public class PlayerControl : MonoBehaviour
     }
     private void collectCheck()
     {
-        if (Physics2D.IsTouchingLayers(_collider, _levelManager.collectableLayer))
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(_rigidbody.position, 0.5f, _levelManager.collectableLayer);
+        if (colliders.Length > 0)
         {
-            _layerFilterCollect.SetLayerMask(_levelManager.collectableLayer);
-            Collider2D[] colliders = new Collider2D[1];
-            Physics2D.GetContacts(_collider, _layerFilterCollect, colliders);
-
-        
-            if (colliders[0].gameObject.CompareTag("Heart"))
-            {
-                Destroy(colliders[0].gameObject);
-                ++_lives;
-            }
-            else if (colliders[0].gameObject.CompareTag("Key"))
-            {
-                Destroy(colliders[0].gameObject);
-                ++_keys;
-            }
+             if (colliders[0].gameObject.CompareTag("Heart"))
+                {
+                    AudioManager._instance.playSfxItem("heart");
+                    DestroyImmediate(colliders[0].gameObject);
+                    ++_lives;
+                }
+                else if (colliders[0].gameObject.CompareTag("Key"))
+                {
+                    AudioManager._instance.playSfxItem("key");
+                    DestroyImmediate(colliders[0].gameObject);
+                    ++_keys;
+                }
         }
     }
     private void interactableCheck()
     {
-         if (Physics2D.IsTouchingLayers(_collider, _levelManager.interactableLayer))
+         Collider2D[] colliders = Physics2D.OverlapCircleAll(_rigidbody.position, 0.5f, _levelManager.interactableLayer);
+        if (colliders.Length > 0)
         {
-            _layerFilterInteract.SetLayerMask(_levelManager.interactableLayer);
-            Collider2D[] colliders = new Collider2D[1];
-            Physics2D.GetContacts(_collider, _layerFilterInteract, colliders);
-
             if (colliders[0].gameObject.CompareTag("Door") && _keys >= 1)
             {
+                AudioManager._instance.playSfxWorld("unlock");
                 Destroy(colliders[0].gameObject);
                 --_keys;
+            } 
+            else if(colliders[0].gameObject.CompareTag("Push Block"))
+            {
+               if(colliders[0].gameObject.GetComponent<Rigidbody2D>().velocity.x == 0) AudioManager._instance.playSfxWorld("pushblock");
             }
         }
     }
@@ -337,7 +389,6 @@ public class PlayerControl : MonoBehaviour
         yield return new WaitForSeconds(_immunityTime);
         _isImmune = false;
     }
-
     #endregion Coroutines
 
 }

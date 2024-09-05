@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class Pushable : MonoBehaviour
 {
     #region Initialization
@@ -23,7 +24,6 @@ public class Pushable : MonoBehaviour
     #endregion Initialization
 
     #region Updates
-
     private void FixedUpdate()
     {
         push();
@@ -50,13 +50,21 @@ public class Pushable : MonoBehaviour
                     new Vector2(_rigidbody.velocity.x * (_pushForce - _resistance), _rigidbody.velocity.y), 
                     ref _velRef,
                     0.1f
-                    );
+                );
             }
             if (Physics2D.OverlapCircleAll(_rightCheck.position, radius, _levelManager.playerLayer).Length > 0)
             {
-                _rigidbody.velocity = new Vector2(-(_rigidbody.velocity.x * (_pushForce - _resistance)), _rigidbody.velocity.y);
+                _rigidbody.velocity = Vector2.SmoothDamp
+                (
+                    _rigidbody.velocity,
+                    new Vector2(-(_rigidbody.velocity.x * (_pushForce - _resistance)), _rigidbody.velocity.y), 
+                    ref _velRef,
+                    0.1f
+                );
             }
-        }    
+            
+        } 
+
     }
 
     #endregion Collisons

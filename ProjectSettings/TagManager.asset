@@ -12,6 +12,10 @@ TagManager:
   - Spike Block
   - Key
   - Door
+  - AudioManager
+  - Camera
+  - StateMachine
+  - UIMenus
   layers:
   - Default
   - TransparentFX
