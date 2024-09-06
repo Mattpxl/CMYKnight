@@ -8,12 +8,14 @@ using UnityEngine.SceneManagement;
 using DataStorage;
 using System;
 using UnityEngine.EventSystems;
+using UnityEngine.Audio;
 
 public class StateMachine : MonoBehaviour
 {
     #region Initialization
     [SerializeField] private PlayerControl _playerControl;
     private bool _isPaused;
+    private AudioSource _audioSource;
 
     private void Awake()
     {
@@ -45,6 +47,8 @@ public class StateMachine : MonoBehaviour
         _fullscreen = _settingsMenu.rootVisualElement.Q("tglFullScreen") as Toggle;
         _resolution = _settingsMenu.rootVisualElement.Q("drpResolution") as DropdownField;
 
+        _audioSource = GetComponent<AudioSource>();
+
     }
 
     private void Start()
@@ -56,33 +60,41 @@ public class StateMachine : MonoBehaviour
         _endscreen.rootVisualElement.style.visibility = Visibility.Hidden;
         _confirmationMenu.rootVisualElement.style.visibility = Visibility.Hidden;
         _settingsMenu.rootVisualElement.style.visibility = Visibility.Hidden;
+        _audioSource.Stop();
+        AudioManager._instance._audioMixer.SetFloat("Sounds",0f);
+        AudioManager._instance._musicSource.loop = true;
+        AudioManager._instance.playMusic("menu0");
             // Setting Menu
             _exitSM.RegisterCallback<ClickEvent>((evt) => 
             { 
                 _settingsMenu.rootVisualElement.style.visibility = Visibility.Hidden;
-                AudioManager._instance.playSfxUI("back");
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[3]._sound);
                 // save settings data changes
             });
 
             // Confirmation menu
             _yes.RegisterCallback<ClickEvent>((evt) => 
             { 
-                AudioManager._instance._sfxSourceUI.Stop();
-                AudioManager._instance.playSfxUI("quit");
+                AudioManager._instance._musicSource.Stop();
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[5]._sound);
+                AudioManager._instance.playMusic("menu0");
                 _confirmationMenu.rootVisualElement.style.visibility = Visibility.Hidden;
                 _mainMenu.rootVisualElement.style.visibility = Visibility.Visible;
                 // Save
             });
             _no.RegisterCallback<ClickEvent>((evt) => 
             { 
-                AudioManager._instance.playSfxUI("back");
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[5]._sound);
                 _confirmationMenu.rootVisualElement.style.visibility = Visibility.Hidden;
             });
         
             //MainMenu
             _start.RegisterCallback<ClickEvent>((evt) => 
             { 
-                AudioManager._instance.playSfxUI("start");
+                AudioManager._instance._musicSource.Stop();
+                AudioManager._instance._audioMixer.SetFloat("Sounds",0f);
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[4]._sound);
+                AudioManager._instance.playMusic("cavern");
                 _mainMenu.rootVisualElement.style.visibility = Visibility.Hidden;
                 if (_isPaused == true)
                 { 
@@ -93,28 +105,32 @@ public class StateMachine : MonoBehaviour
                 _endscreen.rootVisualElement.style.visibility = Visibility.Hidden;
                 _confirmationMenu.rootVisualElement.style.visibility = Visibility.Hidden;
                 _settingsMenu.rootVisualElement.style.visibility = Visibility.Hidden;
+                AudioManager._instance._audioMixer.SetFloat("Sounds",_sound.value);
                 _playerControl.spawn();
             });
             _settingsMM.RegisterCallback<ClickEvent>((evt) => 
             { 
-                AudioManager._instance.playSfxUI("forward");
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
                 _settingsMenu.rootVisualElement.style.visibility = Visibility.Visible;
             });
             _quitMM.RegisterCallback<ClickEvent>((evt) => 
             { 
-                AudioManager._instance.playSfxUI("quit");
+                AudioManager._instance._musicSource.Stop();
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[5]._sound);
                SceneManager.LoadScene(0);
             });
         
             // End Screen
             _quit.RegisterCallback<ClickEvent>((evt) => 
             { 
-                AudioManager._instance.playSfxUI("forward");
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
                 _confirmationMenu.rootVisualElement.style.visibility = Visibility.Visible;
             });
             _restart.RegisterCallback<ClickEvent>((evt) => 
             { 
-                //AudioManager._instance.playSfxUI("start");
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
+                AudioManager._instance._musicSource.Stop();
+                AudioManager._instance.playMusic("cavern");
                 _endscreen.rootVisualElement.style.visibility = Visibility.Hidden;
                 if (_isPaused == true)
                 { 
@@ -127,7 +143,10 @@ public class StateMachine : MonoBehaviour
             // PauseMenu
             _continue.RegisterCallback<ClickEvent>((evt) => 
             { 
-                AudioManager._instance.playSfxUI("forward");
+                // if pause menu visible
+                AudioManager._instance._musicSource.Stop();
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[1]._sound);
+                AudioManager._instance.playMusic("cavern");
                 _pauseMenu.rootVisualElement.style.visibility = Visibility.Hidden; 
                 if (_isPaused == true) 
                 { 
@@ -137,12 +156,12 @@ public class StateMachine : MonoBehaviour
             });
             _settingsPM.RegisterCallback<ClickEvent>((evt) => 
             { 
-                AudioManager._instance.playSfxUI("forward");
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
                 _settingsMenu.rootVisualElement.style.visibility = Visibility.Visible;
             });
             _mainMenuPM.RegisterCallback<ClickEvent>((evt) => 
             { 
-                AudioManager._instance.playSfxUI("forward");
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
                 _confirmationMenu.rootVisualElement.style.visibility = Visibility.Visible;
                 _pauseMenu.rootVisualElement.style.visibility = Visibility.Hidden;
             });
@@ -151,17 +170,30 @@ public class StateMachine : MonoBehaviour
             _mute.RegisterValueChangedCallback((evt) =>
             {
                 AudioManager._instance.toggleMusic();
-                AudioManager._instance.toggleSfx();
+                _audioSource.mute = _mute.value? true : !_audioSource.mute;
+                if(_audioSource.mute == true)
+                {
+                    AudioManager._instance._audioMixer.SetFloat("Music",0f);
+                    AudioManager._instance._audioMixer.SetFloat("Sounds",0f);
+                    AudioManager._instance._audioMixer.SetFloat("UI",0f);
+                }
+                else
+                {
+                    AudioManager._instance._audioMixer.SetFloat("Music",_music.value);
+                    AudioManager._instance._audioMixer.SetFloat("Sounds",_sound.value);
+                    AudioManager._instance._audioMixer.SetFloat("UI",_sound.value);
+                }
             });
             _sound.value = JSONConverter.jsonConverter.getDataObject("sound");
             _sound.RegisterValueChangedCallback((evt) => 
             {
-                AudioManager._instance.sfxVolume(_sound.value);
+                AudioManager._instance._audioMixer.SetFloat("Sounds",_sound.value);
+                AudioManager._instance._audioMixer.SetFloat("UI",_sound.value);
             });
             _music.value = JSONConverter.jsonConverter.getDataObject("music");
             _music.RegisterValueChangedCallback((evt) => 
             {
-                AudioManager._instance.musicVolume(_music.value);
+                AudioManager._instance._audioMixer.SetFloat("Music",_music.value);
             });
             _fullscreen.value = Convert.ToBoolean((int)JSONConverter.jsonConverter.getDataObject("fullscreen"));
             _fullscreen.RegisterValueChangedCallback((evt) => 
@@ -193,6 +225,16 @@ public class StateMachine : MonoBehaviour
                 _resolution.value = _resolution.choices[_resolution.index];
                 _saveIndex = _resolution.index;
             });
+            if(_mute.value == true)
+                {
+                    AudioManager._instance._audioMixer.SetFloat("Music",0f);
+                    AudioManager._instance._audioMixer.SetFloat("UI",0f);
+                }
+                else
+                {
+                    AudioManager._instance._audioMixer.SetFloat("Music",_music.value);
+                    AudioManager._instance._audioMixer.SetFloat("UI",_sound.value);
+                }
 
             if (_settingsMenu.rootVisualElement.style.visibility == Visibility.Visible){
             EventSystem.SetUITookitEventSystemOverride(null, true, false);
@@ -264,15 +306,16 @@ public class StateMachine : MonoBehaviour
         }
         Time.timeScale = _isPaused == true ? 0f : 1f;
         _pauseMenu.rootVisualElement.style.visibility = _isPaused == true ? Visibility.Visible : Visibility.Hidden;
-        
+
+        if(_isPaused) AudioManager._instance._audioMixer.SetFloat("Sounds",0f);
+        else if (_isPaused && !_mute.value) AudioManager._instance._audioMixer.SetFloat("Sounds",_sound.value);
+
         if (_playerControl._isDead) 
         {
             _endscreen.rootVisualElement.style.visibility = Visibility.Visible;
         }
         else _endscreen.rootVisualElement.style.visibility = Visibility.Hidden;
 
-        if(_isPaused) EventSystem.SetUITookitEventSystemOverride(null, true, false);
-        else EventSystem.SetUITookitEventSystemOverride(null, false, false);
     }
 
     #endregion functionality

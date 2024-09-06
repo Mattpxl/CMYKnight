@@ -6,6 +6,7 @@ using DataStorage;
 using System.Runtime.CompilerServices;
 using System;
 using UnityEngine.AI;
+using UnityEngine.Audio;
 
 /// <summary>
 /// Player Control for 2D Platformer
@@ -30,6 +31,8 @@ public class PlayerControl : MonoBehaviour
             private Rigidbody2D _rigidbody;
             private CapsuleCollider2D _collider;
             private Animator _animator;
+            private AudioSource _audioSource;
+            private AudioMixer _audioMixer;
 
     private void Awake()
     {
@@ -37,6 +40,7 @@ public class PlayerControl : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody2D>();
         _collider = GetComponent<CapsuleCollider2D>();
         _animator = GetComponent<Animator>();
+        _audioSource = GetComponent<AudioSource>();
     }
 
     #endregion Initialization
@@ -86,6 +90,8 @@ public class PlayerControl : MonoBehaviour
         _level = _playerData.loadPlayerValue(_playerLevel)._intValue;
         _lives = _playerData.loadPlayerValue(_playerLives)._floatValue;
         _keys = _playerData.loadPlayerValue(_playerKeys)._floatValue;
+        _isPaused = true;
+        _audioSource.Stop();
     }
     private void OnApplicationQuit()
     {
@@ -108,6 +114,7 @@ public class PlayerControl : MonoBehaviour
     private void takeDamage() 
     { 
         if(_lives >= 1) {
+            _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[6]._sound);
             --_lives;
             isGrounded = _rigidbody.velocity.y <= 0;
         }
@@ -116,28 +123,30 @@ public class PlayerControl : MonoBehaviour
             _isDead = true; 
             _lives = 0f; 
         } 
-        if (_isDead == true) AudioManager._instance.playSfxPlayer("dead");
+        
     }
 
     public void dead()
     {
         if(_isDead)
         {
-            AudioManager._instance._sfxSourceWorld.Stop();
-            AudioManager._instance._sfxSourceEnemy.Stop();
-            AudioManager._instance._sfxSourceItem.Stop();
+            isGrounded = false;
+            AudioManager._instance._musicSource.Stop();
+            _audioSource.Stop();
+            _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[4]._sound);
         }
     }
     public void spawn() 
     { 
+        _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[3]._sound);
         transform.position = _levelManager._spawnPoint.position;
         _isDead = false; 
         if (_lives <= 0f) _lives = 3f;
     }
     public void respawn() 
     { 
-        AudioManager._instance._sfxSourcePlayer.Stop();
-        AudioManager._instance.playSfxPlayer("spawn");
+        _audioSource.Stop();
+        _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[3]._sound);
         transform.position = _levelManager._spawnPoint.position; 
         _lives = 3f;
         _isDead = false; 
@@ -174,7 +183,7 @@ public class PlayerControl : MonoBehaviour
     /// Recieve Input from Unity Input System
     /// </summary>
     #region Input
-    public bool _isPaused = true;
+    public bool _isPaused;
     private void OnMove(InputValue inputValue)
     {
         _movementInput = inputValue.Get<Vector2>() == Vector2.zero ? Vector2.zero : inputValue.Get<Vector2>();
@@ -184,8 +193,8 @@ public class PlayerControl : MonoBehaviour
         if(isGrounded)
         switch(UnityEngine.Random.Range(0,1)) 
         { 
-            case 0: AudioManager._instance.playSfxPlayer("step0"); break; 
-            case 1: AudioManager._instance.playSfxPlayer("step1"); break; 
+            case 0: _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[0]._sound); break; 
+            case 1: _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[1]._sound); break; 
             default: break;
         }
         // flip
@@ -200,31 +209,23 @@ public class PlayerControl : MonoBehaviour
     }
       private void OnJump()
     {
-        if (isGrounded || _coyoteJump) _isJumping = true; 
-        // variable jump height - add downward force when player rceleases jump
+        if( (isGrounded || _coyoteJump) && _canJump == true)
+        { 
+            _isJumping = true;
+            StartCoroutine(CanJumpDelay());
+        }
         // apex modifiers - at the apex of the jump there is a moment of anti-gravity & maybe minor speed boost
-        // jump buffering - queue up next jump before htting the ground
+        // if _isJumping == true and _rigidbody.velocity.y == 0f; moment of anti-g
         // clamped fall speed - allows landing on platforms while falling easier
+        // variable jump height - add downward force when player is falling
         // edge detection for ceilings - move player slightly over and continue upward motion
         // catch edges when jumping on platfroms and nudge up
     }
     private void OnPause()
     {
         _isPaused = !_isPaused;
-
-        if(_isPaused == false)
-        {
-            AudioManager._instance.playSfxUI("unpause");
-            AudioManager._instance._sfxSourcePlayer.Stop();
-            AudioManager._instance._sfxSourceWorld.Stop();
-            AudioManager._instance._sfxSourceEnemy.Stop();
-            AudioManager._instance._sfxSourceItem.Stop();
-        }
-        else 
-        {
-            AudioManager._instance._sfxSourcePlayer.Stop();
-            AudioManager._instance.playSfxUI("pause");
-        }
+        _audioSource.Stop();
+        _audioSource.PlayOneShot(AudioManager._instance._sfxUI[0]._sound);
     }
 
     #endregion Input
@@ -263,7 +264,7 @@ public class PlayerControl : MonoBehaviour
     private void jump()
     {
         if (_isJumping) {
-        AudioManager._instance.playSfxPlayer("jump");
+        _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[5]._sound);
         _rigidbody.velocity = Vector2.ClampMagnitude 
         (
             Vector2.SmoothDamp
@@ -286,7 +287,7 @@ public class PlayerControl : MonoBehaviour
     {
         if (isGrounded && _isFalling) 
         {
-            AudioManager._instance.playSfxPlayer("land");
+            _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[2]._sound);
             _isFalling = false;
         }
     }
@@ -304,14 +305,18 @@ public class PlayerControl : MonoBehaviour
     [Header("Collisions")]
     [SerializeField] private Transform groundCheckObj;
     [SerializeField] private Transform ceilingCheckObj;
-    private const float radius = 0.2f;
+    private const float radius = 0.1f;
     private bool isGrounded, wasGrounded, hitCeiling;
 
     private void groundCheck()
     {
         wasGrounded = isGrounded;
         isGrounded = Physics2D.OverlapCircleAll(groundCheckObj.position, radius, _levelManager.groundLayer).Length > 0 ? true : false;
-        if (wasGrounded) StartCoroutine(CoyoteJumpDelay());
+
+        if (wasGrounded)
+        { 
+            StartCoroutine(CoyoteJumpDelay()); 
+        }
         _animator.SetBool("isJumping", !isGrounded);
     }
     private void ceilingCheck()
@@ -333,14 +338,14 @@ public class PlayerControl : MonoBehaviour
         {
              if (colliders[0].gameObject.CompareTag("Heart"))
                 {
-                    AudioManager._instance.playSfxItem("heart");
-                    DestroyImmediate(colliders[0].gameObject);
+                    _audioSource.PlayOneShot(AudioManager._instance._sfxItem[0]._sound);
+                    Destroy(colliders[0].gameObject);
                     ++_lives;
                 }
                 else if (colliders[0].gameObject.CompareTag("Key"))
                 {
-                    AudioManager._instance.playSfxItem("key");
-                    DestroyImmediate(colliders[0].gameObject);
+                    _audioSource.PlayOneShot(AudioManager._instance._sfxItem[1]._sound);
+                    Destroy(colliders[0].gameObject);
                     ++_keys;
                 }
         }
@@ -352,13 +357,20 @@ public class PlayerControl : MonoBehaviour
         {
             if (colliders[0].gameObject.CompareTag("Door") && _keys >= 1)
             {
-                AudioManager._instance.playSfxWorld("unlock");
+                _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[0]._sound);
                 Destroy(colliders[0].gameObject);
                 --_keys;
             } 
             else if(colliders[0].gameObject.CompareTag("Push Block"))
             {
-               if(colliders[0].gameObject.GetComponent<Rigidbody2D>().velocity.x == 0) AudioManager._instance.playSfxWorld("pushblock");
+                if
+                (
+                    colliders[0].gameObject.GetComponent<Rigidbody2D>().velocity.x != 0  && 
+                    colliders[0].gameObject.GetComponent<AudioSource>().isPlaying == false
+                )
+                {
+                    colliders[0].gameObject.GetComponent<AudioSource>().PlayOneShot(AudioManager._instance._sfxWorld[1]._sound);
+                }
             }
         }
     }
@@ -381,6 +393,15 @@ public class PlayerControl : MonoBehaviour
         yield return new WaitForSeconds(_coyoteTime);
         _coyoteJump = false;
     }
+    [SerializeField] private float _jumpDelay;
+    private bool _canJump = true;
+    private IEnumerator CanJumpDelay()
+    {
+        _canJump = false;
+        yield return new WaitForSeconds(_jumpDelay);
+        _canJump = true;
+    }
+
     [SerializeField] private float _immunityTime;
     private bool _isImmune = false;
     private IEnumerator DamageImmunity()

@@ -10,6 +10,7 @@ public class Pushable : MonoBehaviour
     private Collider2D _collider;
     private ContactFilter2D _layerFilter;
     [SerializeField] private LevelManager _levelManager;
+    private AudioSource _audioSource;
 
     [Header("Attributes")]
     [SerializeField] private bool _isPushable;
@@ -19,13 +20,16 @@ public class Pushable : MonoBehaviour
     {
         _rigidbody = GetComponent<Rigidbody2D>();
         _collider = GetComponent<Collider2D>();
+        _audioSource = GetComponent<AudioSource>();
     }
+ 
 
     #endregion Initialization
 
     #region Updates
     private void FixedUpdate()
     {
+        topCheck();
         push();
     }
 
@@ -36,14 +40,32 @@ public class Pushable : MonoBehaviour
     [Header("Collisions")]
     [SerializeField] private Transform _leftCheck;
     [SerializeField] private Transform _rightCheck;
+    [SerializeField] private Transform _topCheck;
     [SerializeField] private float radius;
+    private bool isGrounded, onTop;
+
+    public bool _canMove = true;
     private Vector2 _velRef;
-    private void push()
+
+    private void topCheck()
     {
-        if (_isPushable)
+        if(Physics2D.OverlapCircleAll(_topCheck.position, radius/4, _levelManager.playerLayer).Length > 0)
         {
-            if (Physics2D.OverlapCircleAll(_leftCheck.position, radius, _levelManager.playerLayer).Length > 0)
+            onTop = true;
+        }
+        else onTop = false;
+    }
+    private void push()
+    {   
+        if(_isPushable && !onTop ){
+            if 
+            (
+                Physics2D.OverlapCircleAll(_leftCheck.position, radius * 4, _levelManager.playerLayer).Length > 0
+                &&
+                Physics2D.OverlapCircleAll(_rightCheck.position, radius/4, _levelManager.groundLayer).Length <= 0
+            )
             {
+                _canMove = true;
                 _rigidbody.velocity = Vector2.SmoothDamp
                 (
                     _rigidbody.velocity,
@@ -51,9 +73,15 @@ public class Pushable : MonoBehaviour
                     ref _velRef,
                     0.1f
                 );
-            }
-            if (Physics2D.OverlapCircleAll(_rightCheck.position, radius, _levelManager.playerLayer).Length > 0)
+            } 
+            else if 
+            (
+                Physics2D.OverlapCircleAll(_rightCheck.position, radius * 4, _levelManager.playerLayer).Length > 0
+                &&
+                Physics2D.OverlapCircleAll(_leftCheck.position, radius/4, _levelManager.groundLayer).Length <= 0
+            )
             {
+                _canMove = true;
                 _rigidbody.velocity = Vector2.SmoothDamp
                 (
                     _rigidbody.velocity,
@@ -61,10 +89,8 @@ public class Pushable : MonoBehaviour
                     ref _velRef,
                     0.1f
                 );
-            }
-            
+            } else _canMove = false;
         } 
-
     }
 
     #endregion Collisons

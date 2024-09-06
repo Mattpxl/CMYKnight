@@ -9,12 +9,20 @@ public class Enemy : MonoBehaviour
         private Rigidbody2D _rigidbody;
         private CapsuleCollider2D _collider;
         private Animator _animator;
+        private AudioSource _audioSource;
 
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
         _collider = GetComponent<CapsuleCollider2D>();
         _animator = GetComponent<Animator>();
+
+        _audioSource = GetComponent<AudioSource>();
+    }
+
+    private void Start()
+    {
+        _audioSource.Stop();
     }
 
     #endregion Initialization
@@ -50,6 +58,13 @@ public class Enemy : MonoBehaviour
             transform.localScale = new Vector2(dir, 1);
             int move = Random.Range(0,2);
             _animator.SetFloat("Move", move > 0 ? 1 : 0);
+        if(move == 1)
+        switch(Random.Range(0,1)) 
+        { 
+            case 0: _audioSource.PlayOneShot(AudioManager._instance._sfxEnemy[0]._sound); break; 
+            case 1: _audioSource.PlayOneShot(AudioManager._instance._sfxEnemy[1]._sound); break; 
+            default: break;
+        } else _audioSource.Stop();
             return dir * (move > 0 ? 1 : 0); 
     }
 

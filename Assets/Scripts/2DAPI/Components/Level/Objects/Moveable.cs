@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Collections;
+using Unity.VisualScripting;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
@@ -23,12 +24,14 @@ public class Moveable : MonoBehaviour
     [SerializeField] private bool _isHorizontal;
     [SerializeField] private bool _isVertical;
     [SerializeField] private float _speed;
+    private AudioSource _audioSource;
 
     void Awake()
     {
         _isMoving = true;
         _rigidbody = GetComponent<Rigidbody2D>();
         _collider = GetComponent<Collider2D>();
+        _audioSource = GetComponent<AudioSource>();
     }
 
     void Start()
@@ -45,6 +48,21 @@ public class Moveable : MonoBehaviour
 
     void FixedUpdate()
     {
+            if ( _isMoving == false &&
+            _isGrounded == true &&
+            (_rigidbody.velocity.x != 0 || _rigidbody.velocity.y != 0)
+            ) 
+            if(this.gameObject.tag == "Platform") _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[2]._sound);
+            _rigidbody.velocity = Vector2.zero;
+            _isGrounded = false;
+            
+            if
+            (
+            _audioSource.isPlaying == false &&
+            _isMoving == true 
+            ) 
+            _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[3]._sound);
+
             move();
             groundCheck();
         
@@ -63,6 +81,7 @@ public class Moveable : MonoBehaviour
     {
         if (_isMoving)
         {
+            
             if (_isHorizontal)
             {
                 _rigidbody.velocity = Vector2.SmoothDamp
@@ -84,7 +103,7 @@ public class Moveable : MonoBehaviour
                     0.1f
                 );
             }
-        }
+        } 
     }
 
     #endregion Behaviour
@@ -93,16 +112,16 @@ public class Moveable : MonoBehaviour
 
    // [Header("Collisions")]
     private bool _flip = true;
+    private bool _isGrounded = false;
 
     // check for stoppoints instead of ground to set them around the map and make a path 
     // Path intakes an array of transforms and moves the platform from obj to obj
     // [SerializeField] private Transform[] _path;
     private void groundCheck() 
     {   
-            
         if (Physics2D.IsTouchingLayers(_collider, _levelManager.groundLayer))
         { 
-            
+            _isGrounded = true;
             if ( _isHorizontal && _flip)
             { 
                 _xDirection *= -1;  
@@ -113,7 +132,7 @@ public class Moveable : MonoBehaviour
             }
             StartCoroutine(pauseTime());
             
-        }
+        } 
     }
 
 
