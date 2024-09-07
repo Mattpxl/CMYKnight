@@ -1,14 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using System;
-using UnityEngine.Video;
 using UnityEngine.Audio;
 
 public class AudioManager : MonoBehaviour
 {
     [SerializeField] public AudioMixer _audioMixer;
-    private AudioMixerGroup[] _audioMixerGroup;
+    public AudioMixerGroup[] _audioMixerGroup;
     public static AudioManager _instance;
     public Sound[] _sfx, _sfxUI,_sfxPlayer,_sfxWorld,_sfxEnemy, _sfxItem, _sfxEnvironment, _music;
     public AudioSource _sfxSource, _musicSource;
@@ -24,7 +21,7 @@ public class AudioManager : MonoBehaviour
     }
     void Start()
     {
-       // _audioMixerGroup = _audioMixer.FindMatchingGroups("Master");
+       // _audioMixerGroup = _audioMixer.FindMatchingGroups("Master/Sounds/");
        // _audioMixer.outputAudioMixerGroup = _audioMixerGroup[0];
     }
 

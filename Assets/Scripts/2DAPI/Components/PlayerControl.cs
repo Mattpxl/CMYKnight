@@ -1,12 +1,7 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using DataStorage;
-using System.Runtime.CompilerServices;
-using System;
-using UnityEngine.AI;
-using UnityEngine.Audio;
 
 /// <summary>
 /// Player Control for 2D Platformer
@@ -32,7 +27,6 @@ public class PlayerControl : MonoBehaviour
             private CapsuleCollider2D _collider;
             private Animator _animator;
             private AudioSource _audioSource;
-            private AudioMixer _audioMixer;
 
     private void Awake()
     {
@@ -118,10 +112,9 @@ public class PlayerControl : MonoBehaviour
             --_lives;
             isGrounded = _rigidbody.velocity.y <= 0;
         }
-        else if (_lives <= 0) 
+        else  
         {
             _isDead = true; 
-            _lives = 0f; 
         } 
         
     }
