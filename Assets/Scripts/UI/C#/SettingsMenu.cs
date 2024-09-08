@@ -139,7 +139,19 @@ public class SettingsMenu : MonoBehaviour
         { 
             quit = true;
         });
+        _exitSM.RegisterCallback<NavigationSubmitEvent>((evt) => 
+        { 
+            quit = true;
+        });
+        _exitSM.RegisterCallback<PointerLeaveEvent>((evt) => 
+        { 
+            _exitSM.Focus();
+        });
             _mute.RegisterCallback<ClickEvent>((evt) => 
+            {
+                _isMute = !_isMute;
+            });
+            _mute.RegisterCallback<NavigationSubmitEvent>((evt) => 
             {
                 _isMute = !_isMute;
             });
@@ -158,6 +170,10 @@ public class SettingsMenu : MonoBehaviour
             {
                 _fullscreen.value = !_fullscreen.value;
             });
+            _fullscreen.RegisterCallback<NavigationSubmitEvent>((evt) => 
+            {
+                _fullscreen.value = !_fullscreen.value;
+            });
             _resolution.RegisterValueChangedCallback((evt) => 
             {
                 Screen.SetResolution(_widths[_resolution.index],_heights[_resolution.index], Screen.fullScreen);
@@ -170,6 +186,7 @@ public class SettingsMenu : MonoBehaviour
        //_settingsMenu.enabled = true;
        //this.gameObject.SetActive(true);
         _settingsMenu.rootVisualElement.style.visibility = Visibility.Visible;
+        _exitSM.Focus();
         initCallbacks();
         quit = false;
     }

@@ -22,7 +22,8 @@ public class PlayerControl : MonoBehaviour
     /// Initlialize Components 
     /// </summary>
     #region Initialization
-            [SerializeField] private LevelManager _levelManager;
+            private LayerManager _levelManager;
+            private Transform _spawnPoint;
             private Rigidbody2D _rigidbody;
             private CapsuleCollider2D _collider;
             private Animator _animator;
@@ -35,6 +36,8 @@ public class PlayerControl : MonoBehaviour
         _collider = GetComponent<CapsuleCollider2D>();
         _animator = GetComponent<Animator>();
         _audioSource = GetComponent<AudioSource>();
+        _levelManager = GetComponent<LayerManager>();
+        _spawnPoint = GameObject.FindGameObjectWithTag("SpawnPoint").transform;
     }
 
     #endregion Initialization
@@ -132,7 +135,7 @@ public class PlayerControl : MonoBehaviour
     public void spawn() 
     { 
         _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[3]._sound);
-        transform.position = _levelManager._spawnPoint.position;
+        transform.position = _spawnPoint.position;
         _isDead = false; 
         if (_lives <= 0f) _lives = 3f;
     }
@@ -140,7 +143,7 @@ public class PlayerControl : MonoBehaviour
     { 
         _audioSource.Stop();
         _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[3]._sound);
-        transform.position = _levelManager._spawnPoint.position; 
+        transform.position = _spawnPoint.position; 
         _lives = 3f;
         _isDead = false; 
     }
@@ -314,7 +317,8 @@ public class PlayerControl : MonoBehaviour
     }
     private void ceilingCheck()
     {
-        hitCeiling = Physics2D.OverlapCircleAll(ceilingCheckObj.position, radius, _levelManager.groundLayer).Length > 0 ? true : false;
+        hitCeiling = Physics2D.OverlapCircleAll(ceilingCheckObj.position, 0.3f, _levelManager.groundLayer).Length > 0 ? true : false;
+        platformCheck();
     }
     private void hazardCheck()
     {
@@ -367,6 +371,25 @@ public class PlayerControl : MonoBehaviour
             }
         }
     }
+
+    private void platformCheck()
+    {  
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(ceilingCheckObj.position, 0.3f, _levelManager.platformLayer);
+        if (colliders.Length > 0)
+        {
+            Physics2D.IgnoreLayerCollision(3, 14, true);
+            StartCoroutine(PlatfromCollisonDelay());
+                 
+        }
+        colliders = Physics2D.OverlapCircleAll(groundCheckObj.position, 0.3f, _levelManager.platformLayer);
+        if(isGrounded == true && _canCollidePlatform == true && colliders.Length > 0)
+        {
+            Physics2D.IgnoreLayerCollision(3, 14, false);
+            if(colliders[0].gameObject.GetComponent<Moveable>()._isHorizontal == true)
+                _rigidbody.velocity = new Vector2 (colliders[0].gameObject.GetComponent<Rigidbody2D>().velocity.x * 1.15f, _rigidbody.velocity.y);
+               
+        }
+    }
    
     #endregion Collisions
 
@@ -403,6 +426,17 @@ public class PlayerControl : MonoBehaviour
         yield return new WaitForSeconds(_immunityTime);
         _isImmune = false;
     }
+
+    [SerializeField] private float _platformCollisionDelay;
+    private bool _canCollidePlatform;
+
+    private IEnumerator PlatfromCollisonDelay()
+    {
+        _canCollidePlatform = false;
+        yield return new WaitForSeconds(_platformCollisionDelay);
+        _canCollidePlatform = true;
+    }
+
     #endregion Coroutines
 
 }

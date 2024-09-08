@@ -13,12 +13,12 @@ public class Moveable : MonoBehaviour
     #region Initialization
     private Rigidbody2D _rigidbody;
     private Collider2D _collider;
-    [SerializeField] private LevelManager _levelManager;
+    private LayerManager _levelManager;
 
     [Header("Attributes")]
     [SerializeField] private bool _isMoving;
-    [SerializeField] private bool _isHorizontal;
-    [SerializeField] private bool _isVertical;
+    [SerializeField] public bool _isHorizontal;
+    [SerializeField] public bool _isVertical;
     [SerializeField] private float _speed;
     private AudioSource _audioSource;
 
@@ -28,6 +28,7 @@ public class Moveable : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody2D>();
         _collider = GetComponent<Collider2D>();
         _audioSource = GetComponent<AudioSource>();
+        _levelManager = GetComponent<LayerManager>();
     }
 
     void Start()
@@ -130,7 +131,6 @@ public class Moveable : MonoBehaviour
             
         } 
     }
-
 
 #endregion Collisions
 

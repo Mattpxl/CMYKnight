@@ -37,13 +37,37 @@ public class PauseMenu : MonoBehaviour
             { 
                 _cont = true;
             });
+            _continue.RegisterCallback<NavigationSubmitEvent>((evt) => 
+            { 
+                _cont = true;
+            });
+            _continue.RegisterCallback<PointerLeaveEvent>((evt) => 
+            { 
+                _continue.Focus();
+            });
             _settingsPM.RegisterCallback<ClickEvent>((evt) => 
             { 
                 _openSettings = true;
             });
+            _settingsPM.RegisterCallback<NavigationSubmitEvent>((evt) => 
+            { 
+                _openSettings = true;
+            });
+            _settingsPM.RegisterCallback<PointerLeaveEvent>((evt) => 
+            { 
+                _settingsPM.Focus();
+            });
             _mainMenuPM.RegisterCallback<ClickEvent>((evt) => 
             { 
                 _mainMenu = true;
+            });
+            _mainMenuPM.RegisterCallback<NavigationSubmitEvent>((evt) => 
+            { 
+                _mainMenu = true;
+            });
+            _mainMenuPM.RegisterCallback<PointerLeaveEvent>((evt) => 
+            { 
+                _mainMenuPM.Focus();
             });
     }
     public void isEnabled()
@@ -51,6 +75,7 @@ public class PauseMenu : MonoBehaviour
        // _pauseMenu.enabled = true;
        // this.gameObject.SetActive(true);
         _pauseMenu.rootVisualElement.style.visibility = Visibility.Visible;
+        _continue.Focus();
         //initCallbacks();
         _cont = false;
         _openSettings = false;

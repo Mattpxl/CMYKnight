@@ -31,9 +31,25 @@ public class EndScreen : MonoBehaviour
         { 
             quit = true;
         });
+        _quit.RegisterCallback<NavigationSubmitEvent>((evt) => 
+        { 
+            quit = true;
+        });
+        _quit.RegisterCallback<PointerLeaveEvent>((evt) => 
+        { 
+            _quit.Focus();
+        });
         _restart.RegisterCallback<ClickEvent>((evt) => 
         { 
             restart = true;
+        });
+        _restart.RegisterCallback<NavigationSubmitEvent>((evt) => 
+        { 
+            restart = true;
+        });
+        _restart.RegisterCallback<PointerLeaveEvent>((evt) => 
+        { 
+            _restart.Focus();
         });
     }
     public void isEnabled()

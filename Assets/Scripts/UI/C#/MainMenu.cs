@@ -5,12 +5,11 @@ public class MainMenu : MonoBehaviour
 {
     #region Initialization
     public UIDocument _mainMenu;
-    private Button _start;
-    private Button _settingsMM;
-    private Button _quitMM;
+    public Button _start;
+    public Button _settingsMM;
+    public Button _quitMM;
 
     public bool _openSettings, _quit, _canStart = false;
-
     private void Awake()
     {
         _mainMenu = GetComponent<UIDocument>();
@@ -23,6 +22,7 @@ public class MainMenu : MonoBehaviour
     void Start()
     {
         isEnabled();
+        _start.Focus();
         initCallbacks();
     }
     private void OnEnable()
@@ -36,13 +36,37 @@ public class MainMenu : MonoBehaviour
             { 
                 _canStart = true;
             });
+            _start.RegisterCallback<NavigationSubmitEvent>((evt) => 
+            { 
+                _canStart = true;
+            });
+            _start.RegisterCallback<PointerLeaveEvent>((evt) => 
+            { 
+                _start.Focus();
+            });
             _settingsMM.RegisterCallback<ClickEvent>((evt) => 
             { 
                 _openSettings = true;
             });
+            _settingsMM.RegisterCallback<NavigationSubmitEvent>((evt) => 
+            { 
+                _openSettings = true;
+            });
+            _settingsMM.RegisterCallback<PointerLeaveEvent>((evt) => 
+            { 
+                _settingsMM.Focus();
+            });
             _quitMM.RegisterCallback<ClickEvent>((evt) => 
             { 
                 _quit = true;
+            });
+            _quitMM.RegisterCallback<NavigationSubmitEvent>((evt) => 
+            { 
+                _quit = true;
+            });
+            _quitMM.RegisterCallback<PointerLeaveEvent>((evt) => 
+            { 
+                _quitMM.Focus();
             });
     }
 
@@ -51,6 +75,7 @@ public class MainMenu : MonoBehaviour
        // _mainMenu.enabled = true;
        // this.gameObject.SetActive(true);
         _mainMenu.rootVisualElement.style.visibility = Visibility.Visible;
+        _start.Focus();
        // initCallbacks();
         _openSettings = false;
         _quit = false;

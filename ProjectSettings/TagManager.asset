@@ -16,6 +16,7 @@ TagManager:
   - Camera
   - StateMachine
   - UIMenus
+  - SpawnPoint
   layers:
   - Default
   - TransparentFX

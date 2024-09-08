@@ -4,7 +4,7 @@ using UnityEngine;
 public class Enemy : MonoBehaviour
 {
     #region Initialization
-        [SerializeField] private LevelManager _levelManager;
+        private LayerManager _levelManager;
         private Rigidbody2D _rigidbody;
         private CapsuleCollider2D _collider;
         private Animator _animator;
@@ -15,7 +15,7 @@ public class Enemy : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody2D>();
         _collider = GetComponent<CapsuleCollider2D>();
         _animator = GetComponent<Animator>();
-
+        _levelManager = GetComponent<LayerManager>();
         _audioSource = GetComponent<AudioSource>();
     }
 
@@ -89,7 +89,13 @@ public class Enemy : MonoBehaviour
             StartCoroutine(wallCheckTimer());
             StartCoroutine(moveTimer());
             _animator.SetFloat("Move", 1);
-            _rigidbody.velocity = new Vector2(_speed / 2 * _rigidbody.velocity.x, 0f);
+            _rigidbody.velocity = Vector2.SmoothDamp
+                (
+                    _rigidbody.velocity,
+                    new Vector2(_speed / 10 * _rigidbody.velocity.x, 0f),
+                    ref _velRef,
+                    0.1f
+                );
             _animator.SetFloat("Move", 0);
         }
         }

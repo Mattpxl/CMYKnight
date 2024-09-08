@@ -1,12 +1,12 @@
 using UnityEngine;
 
-public class LevelManager : MonoBehaviour
+public class LayerManager : MonoBehaviour
 {
-    [SerializeField] public Transform _spawnPoint;
     [SerializeField] public LayerMask playerLayer;
     [SerializeField] public LayerMask groundLayer;
     [SerializeField] public LayerMask hazardLayer;
     [SerializeField] public LayerMask collectableLayer;
     [SerializeField] public LayerMask interactableLayer;
+    [SerializeField] public LayerMask platformLayer;
 
 }

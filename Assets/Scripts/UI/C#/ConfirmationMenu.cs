@@ -31,16 +31,34 @@ public class ConfirmationMenu : MonoBehaviour
         { 
             yes = true;
         });
+         _yes.RegisterCallback<NavigationSubmitEvent>((evt) => 
+        { 
+            yes = true;
+        });
+        _yes.RegisterCallback<PointerLeaveEvent>((evt) => 
+        { 
+            _yes.Focus();
+        });
         _no.RegisterCallback<ClickEvent>((evt) => 
         { 
             no = true;
         });
+        _no.RegisterCallback<NavigationSubmitEvent>((evt) => 
+        { 
+            no = true;
+        });
+        _no.RegisterCallback<PointerLeaveEvent>((evt) => 
+        { 
+            _no.Focus();
+        });
+        
     }
     public void isEnabled()
     {
        // _confirmationMenu.enabled = true;
         //this.gameObject.SetActive(true);
         _confirmationMenu.rootVisualElement.style.visibility = Visibility.Visible;
+        _no.Focus();
         //initCallbacks();
         yes = false;
         no = false;

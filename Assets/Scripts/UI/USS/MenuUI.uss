@@ -13,6 +13,13 @@
     background-image: none;
     -unity-background-scale-mode: scale-to-fit;
 }
+.unity-button:focus {
+    scale: 1.2 1.2;
+    transition-property: scale;
+    transition-duration: 0.25s;
+    background-image: none;
+    -unity-background-scale-mode: scale-to-fit;
+}
 
 
 .custom-label {

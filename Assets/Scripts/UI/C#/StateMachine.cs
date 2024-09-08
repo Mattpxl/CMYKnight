@@ -1,6 +1,8 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 
 public class StateMachine : MonoBehaviour
 {
@@ -25,6 +27,7 @@ public class StateMachine : MonoBehaviour
         _isPaused = _playerControl._isPaused;
         AudioManager._instance._musicSource.loop = true;
         AudioManager._instance.playMusic("menu0");
+        //_playerControl._playerInput.SwitchCurrentActionMap("UI");
     }
 
     #endregion Initialization
@@ -35,6 +38,7 @@ public class StateMachine : MonoBehaviour
         // Setting Menu
         if(_settingsMenu._settingsMenu.rootVisualElement.style.visibility == Visibility.Visible) //_settingsMenu.isActiveAndEnabled == true
         {
+            
             if(_settingsMenu.quit == true)
             {
                 _audioSource.PlayOneShot(AudioManager._instance._sfxUI[3]._sound);
@@ -67,6 +71,7 @@ public class StateMachine : MonoBehaviour
           //MainMenu
           else if (_mainMenu._mainMenu.rootVisualElement.style.visibility == Visibility.Visible)//_mainMenu.isActiveAndEnabled == true
           {
+            //EventSystem.current.SetSelectedGameObject(_mainMenu._start);
             if (_mainMenu._canStart == true)
             {
                 AudioManager._instance._musicSource.Stop();
@@ -156,15 +161,18 @@ public class StateMachine : MonoBehaviour
             }
             if (_playerControl._isDead) 
             {
-            _endscreen.isEnabled();
+                //_playerControl._playerInput.SwitchCurrentActionMap("UI");
+                _endscreen.isEnabled();
             }
             else
             {
-            _endscreen.isDisabled();
+                //_playerControl._playerInput.SwitchCurrentActionMap("Player");
+                _endscreen.isDisabled();
             }   
             _isPaused = _playerControl._isPaused;
             if(_isPaused == true)
             {
+                //_playerControl._playerInput.SwitchCurrentActionMap("UI");
                 Time.timeScale = 0f;
                 _pauseMenu.isEnabled();
                 AudioManager._instance._audioMixerGroup = AudioManager._instance._audioMixer.FindMatchingGroups("Master/Sounds/");
@@ -174,6 +182,7 @@ public class StateMachine : MonoBehaviour
             }
             if(_isPaused == false)
             {
+                //_playerControl._playerInput.SwitchCurrentActionMap("Player");
                 Time.timeScale = 1f;
                 _pauseMenu.isDisabled();         
                 AudioManager._instance._audioMixerGroup = AudioManager._instance._audioMixer.FindMatchingGroups("Master/Sounds/");

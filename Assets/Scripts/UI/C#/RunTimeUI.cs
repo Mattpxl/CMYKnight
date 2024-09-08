@@ -20,23 +20,5 @@ public class RunTimeUI : MonoBehaviour
         _keyLabel = _runtimeUI.rootVisualElement.Q("txtKey") as TextField;
     }
     #endregion Initialization
-    void Start()
-    {
-        isEnabled();
-    }
-
-    public void isEnabled()
-    {
-       //_runtimeUI.enabled = true;
-       //this.gameObject.SetActive(true);
-        _runtimeUI.rootVisualElement.style.visibility = Visibility.Visible;
-    }
-    public void isDisabled()
-    {
-        
-       // _runtimeUI.rootVisualElement.style.visibility = Visibility.Hidden;
-        //_runtimeUI.enabled = false;
-        this.gameObject.SetActive(false);
-        
-    }
+   
 }

@@ -7,7 +7,7 @@ public class Pushable : MonoBehaviour
     private Rigidbody2D _rigidbody;
     private Collider2D _collider;
     private ContactFilter2D _layerFilter;
-    [SerializeField] private LevelManager _levelManager;
+    private LayerManager _levelManager;
     private AudioSource _audioSource;
 
     [Header("Attributes")]
@@ -19,6 +19,7 @@ public class Pushable : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody2D>();
         _collider = GetComponent<Collider2D>();
         _audioSource = GetComponent<AudioSource>();
+        _levelManager = GetComponent<LayerManager>();
     }
  
 
