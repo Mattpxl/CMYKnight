@@ -57,8 +57,7 @@ public class Moveable : MonoBehaviour
             (
             _audioSource.isPlaying == false &&
             _isMoving == true 
-            ) 
-            _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[3]._sound);
+            ) _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[3]._sound);
 
             move();
             groundCheck();

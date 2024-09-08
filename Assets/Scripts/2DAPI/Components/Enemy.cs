@@ -9,6 +9,7 @@ public class Enemy : MonoBehaviour
         private CapsuleCollider2D _collider;
         private Animator _animator;
         private AudioSource _audioSource;
+        private AwarenessController _awarenessController;
 
     private void Awake()
     {
@@ -16,12 +17,14 @@ public class Enemy : MonoBehaviour
         _collider = GetComponent<CapsuleCollider2D>();
         _animator = GetComponent<Animator>();
         _levelManager = GetComponent<LayerManager>();
+        _awarenessController = GetComponent<AwarenessController>();
         _audioSource = GetComponent<AudioSource>();
     }
 
     private void Start()
     {
         _audioSource.Stop();
+        _awarenessController.setTarget(GameObject.FindGameObjectWithTag("Player").transform.position);
     }
 
     #endregion Initialization
@@ -31,6 +34,15 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
+        if(_awarenessController.canCheck)
+        _awarenessController.awarenessCheck();
+        if(_awarenessController.isAware)
+        {
+            transform.localScale *= new Vector2(-GameObject.FindGameObjectWithTag("Player").transform.localScale.x, 1); 
+            _audioSource.PlayOneShot(AudioManager._instance._sfxEnemy[2]._sound);
+            _awarenessController.isAware = false;
+            StartCoroutine(_awarenessController.AwarenessDelay());
+        }
         flipCheck();
         if(_canMove){
             StartCoroutine(moveTimer());
@@ -60,8 +72,8 @@ public class Enemy : MonoBehaviour
         if(move == 1)
         switch(Random.Range(0,1)) 
         { 
-            case 0: _audioSource.PlayOneShot(AudioManager._instance._sfxEnemy[0]._sound); break; 
-            case 1: _audioSource.PlayOneShot(AudioManager._instance._sfxEnemy[1]._sound); break; 
+            case 0: if(_audioSource.isPlaying == false)_audioSource.PlayOneShot(AudioManager._instance._sfxEnemy[0]._sound); break; 
+            case 1: if(_audioSource.isPlaying == false)_audioSource.PlayOneShot(AudioManager._instance._sfxEnemy[1]._sound); break; 
             default: break;
         } else _audioSource.Stop();
             return dir * (move > 0 ? 1 : 0); 
