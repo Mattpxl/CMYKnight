@@ -41,7 +41,7 @@ public class PauseMenu : MonoBehaviour
             { 
                 _cont = true;
             });
-            _continue.RegisterCallback<PointerLeaveEvent>((evt) => 
+            _continue.RegisterCallback<PointerEnterEvent>((evt) => 
             { 
                 _continue.Focus();
             });
@@ -53,7 +53,7 @@ public class PauseMenu : MonoBehaviour
             { 
                 _openSettings = true;
             });
-            _settingsPM.RegisterCallback<PointerLeaveEvent>((evt) => 
+            _settingsPM.RegisterCallback<PointerEnterEvent>((evt) => 
             { 
                 _settingsPM.Focus();
             });
@@ -65,7 +65,7 @@ public class PauseMenu : MonoBehaviour
             { 
                 _mainMenu = true;
             });
-            _mainMenuPM.RegisterCallback<PointerLeaveEvent>((evt) => 
+            _mainMenuPM.RegisterCallback<PointerEnterEvent>((evt) => 
             { 
                 _mainMenuPM.Focus();
             });

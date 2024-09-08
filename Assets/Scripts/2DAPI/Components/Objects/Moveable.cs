@@ -33,6 +33,7 @@ public class Moveable : MonoBehaviour
 
     void Start()
     {
+        _audioSource.Stop();
         Physics2D.IgnoreLayerCollision(10,10,true);
         Physics2D.IgnoreLayerCollision(14,14,true);
         Physics2D.IgnoreLayerCollision(10,14,true);
@@ -49,7 +50,14 @@ public class Moveable : MonoBehaviour
             _isGrounded == true &&
             (_rigidbody.velocity.x != 0 || _rigidbody.velocity.y != 0)
             ) 
-            if(this.gameObject.tag == "Platform") _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[2]._sound);
+            if(this.gameObject.tag == "Platform")
+            {
+                if(_canCollideSound == true)
+                {
+                    _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[2]._sound);
+                    StartCoroutine(DelayCollisionSound());
+                }
+            } 
             _rigidbody.velocity = Vector2.zero;
             _isGrounded = false;
             
@@ -150,6 +158,14 @@ private IEnumerator flipDelay()
     _flip = false;
     yield return new WaitForSeconds(_pauseTime + 1f);
     _flip = true;
+}
+
+private bool _canCollideSound = true;
+private IEnumerator DelayCollisionSound()
+{
+    _canCollideSound = false;
+    yield return new WaitForSeconds(_pauseTime + 1.2f);
+    _canCollideSound = true;
 }
 
 #endregion Coroutines

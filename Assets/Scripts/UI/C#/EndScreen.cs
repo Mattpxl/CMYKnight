@@ -35,7 +35,7 @@ public class EndScreen : MonoBehaviour
         { 
             quit = true;
         });
-        _quit.RegisterCallback<PointerLeaveEvent>((evt) => 
+        _quit.RegisterCallback<PointerEnterEvent>((evt) => 
         { 
             _quit.Focus();
         });
@@ -47,7 +47,7 @@ public class EndScreen : MonoBehaviour
         { 
             restart = true;
         });
-        _restart.RegisterCallback<PointerLeaveEvent>((evt) => 
+        _restart.RegisterCallback<PointerEnterEvent>((evt) => 
         { 
             _restart.Focus();
         });

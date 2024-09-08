@@ -143,7 +143,7 @@ public class SettingsMenu : MonoBehaviour
         { 
             quit = true;
         });
-        _exitSM.RegisterCallback<PointerLeaveEvent>((evt) => 
+        _exitSM.RegisterCallback<PointerEnterEvent>((evt) => 
         { 
             _exitSM.Focus();
         });

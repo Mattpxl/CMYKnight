@@ -35,7 +35,7 @@ public class ConfirmationMenu : MonoBehaviour
         { 
             yes = true;
         });
-        _yes.RegisterCallback<PointerLeaveEvent>((evt) => 
+        _yes.RegisterCallback<PointerEnterEvent>((evt) => 
         { 
             _yes.Focus();
         });
@@ -47,7 +47,7 @@ public class ConfirmationMenu : MonoBehaviour
         { 
             no = true;
         });
-        _no.RegisterCallback<PointerLeaveEvent>((evt) => 
+        _no.RegisterCallback<PointerEnterEvent>((evt) => 
         { 
             _no.Focus();
         });

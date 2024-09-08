@@ -363,7 +363,9 @@ public class PlayerControl : MonoBehaviour
                 if
                 (
                     colliders[0].gameObject.GetComponent<Rigidbody2D>().velocity.x != 0  && 
-                    colliders[0].gameObject.GetComponent<AudioSource>().isPlaying == false
+                    colliders[0].gameObject.GetComponent<AudioSource>().isPlaying == false 
+
+
                 )
                 {
                     colliders[0].gameObject.GetComponent<AudioSource>().PlayOneShot(AudioManager._instance._sfxWorld[1]._sound);

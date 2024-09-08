@@ -136,7 +136,7 @@ GameObject:
   m_TagString: Push Block
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &220308990
 Transform:
@@ -147,7 +147,7 @@ Transform:
   m_GameObject: {fileID: 220308989}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.23, y: 0.52, z: 0}
+  m_LocalPosition: {x: -0.23, y: 0.41, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -655,7 +655,7 @@ GameObject:
   m_TagString: Push Block
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &1020955169
 Transform:
@@ -666,7 +666,7 @@ Transform:
   m_GameObject: {fileID: 1020955168}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.24, y: -0.54, z: 0}
+  m_LocalPosition: {x: -0.25, y: -0.49, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -13006,14 +13006,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98efb24c83c714c688f8f91eda58ed99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _isPushable: 1
   _pushForce: 1
   _resistance: 0
   _leftCheck: {fileID: 8398448137766536961}
   _rightCheck: {fileID: 4531417289914483937}
   _topCheck: {fileID: 220308990}
-  radius: 0.1
-  _canMove: 0
+  _groundCheck: {fileID: 1020955169}
+  radius: 0.3
 --- !u!4 &2313561158078254556
 Transform:
   m_ObjectHideFlags: 0
@@ -13236,6 +13235,10 @@ MonoBehaviour:
     _sound: {fileID: 8300000, guid: c0df1af9167d841fe9d3ce74b70b6fe2, type: 3}
   - _name: '"platform-takeoff"'
     _sound: {fileID: 8300000, guid: 9ec541e15b05d48d1a217b62f6eb2989, type: 3}
+  - _name: pushblock-land
+    _sound: {fileID: 8300000, guid: 3b8342fcd7a1b4cf6aa20509f9a0b1fd, type: 3}
+  - _name: pushblock-wall
+    _sound: {fileID: 8300000, guid: 45bb5b9aaa8274cd29f08b9700154ccb, type: 3}
   _sfxEnemy:
   - _name: bones0
     _sound: {fileID: 8300000, guid: 726b876c964ad44bf87714429a5cbfcb, type: 3}
@@ -13400,7 +13403,7 @@ Transform:
   m_GameObject: {fileID: 6257268716998921687}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -11.11, y: -5.48, z: 0}
+  m_LocalPosition: {x: -11.09, y: -5.16, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -14445,7 +14448,7 @@ GameObject:
   m_TagString: Push Block
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!114 &3793843643447542501
 MonoBehaviour:
@@ -14527,7 +14530,7 @@ GameObject:
   m_TagString: Push Block
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &3872483475744766287
 Transform:
@@ -14918,7 +14921,7 @@ Transform:
   m_GameObject: {fileID: 3819362168063203557}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.07, y: -0.16, z: 0.039370187}
+  m_LocalPosition: {x: 0.13, y: -0.14, z: 0.039370187}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -15481,7 +15484,7 @@ MonoBehaviour:
     m_Bits: 8
   groundLayer:
     serializedVersion: 2
-    m_Bits: 25728
+    m_Bits: 17536
   hazardLayer:
     serializedVersion: 2
     m_Bits: 1024
@@ -17055,7 +17058,7 @@ Transform:
   m_GameObject: {fileID: 3740990513824517464}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.51, y: -0.13, z: 0}
+  m_LocalPosition: {x: -0.59, y: -0.11, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

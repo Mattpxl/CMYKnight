@@ -11,7 +11,6 @@ public class Pushable : MonoBehaviour
     private AudioSource _audioSource;
 
     [Header("Attributes")]
-    [SerializeField] private bool _isPushable;
     [SerializeField] private float _pushForce;
     [SerializeField] private float _resistance;
     void Awake()
@@ -29,7 +28,11 @@ public class Pushable : MonoBehaviour
     private void FixedUpdate()
     {
         topCheck();
+        groundCheck();
+
         push();
+        fallCheck();
+        landCheck();
     }
 
     #endregion Updates
@@ -40,57 +43,99 @@ public class Pushable : MonoBehaviour
     [SerializeField] private Transform _leftCheck;
     [SerializeField] private Transform _rightCheck;
     [SerializeField] private Transform _topCheck;
+    [SerializeField] private Transform _groundCheck;
     [SerializeField] private float radius;
-    private bool isGrounded, onTop;
+    private bool isGrounded = true, onTop = false, isFalling = false, hasPlayed = false;
 
-    public bool _canMove = true;
     private Vector2 _velRef;
 
     private void topCheck()
     {
-        if(Physics2D.OverlapCircleAll(_topCheck.position, radius/4, _levelManager.playerLayer).Length > 0)
+        onTop = Physics2D.OverlapCircleAll(_topCheck.position, 0.28f, _levelManager.playerLayer).Length > 0 ? true : false;
+    }
+     private void groundCheck()
+    {
+        isGrounded = Physics2D.OverlapCircleAll(_groundCheck.position, 0.3f, _levelManager.groundLayer).Length > 0 ? true : false;
+    }
+    private void fallCheck()
+    {
+        if(isGrounded == false && _rigidbody.velocity.y < 0) isFalling = true;
+    }
+    private void landCheck()
+    {
+        if (isGrounded == true && isFalling == true) 
         {
-            onTop = true;
+            _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[4]._sound);
+            isFalling = false;
         }
-        else onTop = false;
     }
     private void push()
     {   
-        if(_isPushable && !onTop ){
-            if 
+            if(onTop == true)
+            {
+                _audioSource.Stop();
+                _rigidbody.velocity = Vector2.zero;
+            }
+            if
             (
-                Physics2D.OverlapCircleAll(_leftCheck.position, radius * 4, _levelManager.playerLayer).Length > 0
+                (
+                Physics2D.OverlapCircleAll(_rightCheck.position, 0.4f, _levelManager.playerLayer).Length > 0
+                ||
+                Physics2D.OverlapCircleAll(_leftCheck.position, 0.4f, _levelManager.playerLayer).Length > 0
+                )
                 &&
-                Physics2D.OverlapCircleAll(_rightCheck.position, radius/4, _levelManager.groundLayer).Length <= 0
+                (
+                Physics2D.OverlapCircleAll(_rightCheck.position, 0.35f, _levelManager.groundLayer).Length > 0
+                ||
+                Physics2D.OverlapCircleAll(_leftCheck.position, 0.35f, _levelManager.groundLayer).Length > 0
+                )
+                &&
+                _rigidbody.velocity.x != 0f 
+                && hasPlayed == false
             )
             {
-                _canMove = true;
+               
+                _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[5]._sound);
+                hasPlayed = true;
+                _rigidbody.velocity = Vector2.zero;
+                
+                    
+            }
+            else if 
+            (
+                Physics2D.OverlapCircleAll(_leftCheck.position, radius , _levelManager.playerLayer).Length > 0
+                &&
+                Physics2D.OverlapCircleAll(_rightCheck.position, radius, _levelManager.groundLayer).Length <= 0
+            )
+            {
                 _rigidbody.velocity = Vector2.SmoothDamp
                 (
                     _rigidbody.velocity,
-                    new Vector2(_rigidbody.velocity.x * (_pushForce - _resistance), _rigidbody.velocity.y), 
+                    new Vector2((_rigidbody.velocity.x * _pushForce)  - _resistance, _rigidbody.velocity.y), 
                     ref _velRef,
                     0.1f
                 );
+                hasPlayed = false;
             } 
             else if 
             (
-                Physics2D.OverlapCircleAll(_rightCheck.position, radius * 4, _levelManager.playerLayer).Length > 0
+                Physics2D.OverlapCircleAll(_rightCheck.position, radius, _levelManager.playerLayer).Length > 0
                 &&
-                Physics2D.OverlapCircleAll(_leftCheck.position, radius/4, _levelManager.groundLayer).Length <= 0
+                Physics2D.OverlapCircleAll(_leftCheck.position, radius, _levelManager.groundLayer).Length <= 0
+                
             )
             {
-                _canMove = true;
                 _rigidbody.velocity = Vector2.SmoothDamp
                 (
                     _rigidbody.velocity,
-                    new Vector2(-(_rigidbody.velocity.x * (_pushForce - _resistance)), _rigidbody.velocity.y), 
+                    new Vector2(-(_rigidbody.velocity.x * (_pushForce)) + _resistance, _rigidbody.velocity.y), 
                     ref _velRef,
                     0.1f
                 );
-            } else _canMove = false;
+                hasPlayed = false;
+            } 
+            
         } 
     }
 
     #endregion Collisons
-}

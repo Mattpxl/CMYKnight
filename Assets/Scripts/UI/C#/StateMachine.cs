@@ -169,7 +169,9 @@ public class StateMachine : MonoBehaviour
                 //_playerControl._playerInput.SwitchCurrentActionMap("Player");
                 _endscreen.isDisabled();
             }   
-            _isPaused = _playerControl._isPaused;
+
+        }
+         _isPaused = _playerControl._isPaused;
             if(_isPaused == true)
             {
                 //_playerControl._playerInput.SwitchCurrentActionMap("UI");
@@ -190,8 +192,6 @@ public class StateMachine : MonoBehaviour
                 AudioManager._instance._audioMixerGroup[2].audioMixer.SetFloat("World",  0f);
                 AudioManager._instance._audioMixerGroup[3].audioMixer.SetFloat("Enemy",  -5f);
             }
-
-        }
     }
 
 }
