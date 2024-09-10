@@ -8,6 +8,7 @@ public class SettingsMenu : MonoBehaviour
 {
     #region Initialization
     public UIDocument _settingsMenu;
+    private AudioSource _audioSource;
     private Button _exitSM;
     private Toggle _mute;
     private Slider _sound;
@@ -26,6 +27,7 @@ public class SettingsMenu : MonoBehaviour
     private void Awake()
     {
         _settingsMenu = GetComponent<UIDocument>();
+        _audioSource = GetComponent<AudioSource>();
         _exitSM  = _settingsMenu.rootVisualElement.Q("btnExitSM") as Button;
         _mute = _settingsMenu.rootVisualElement.Q("tglMute") as Toggle;
         _sound = _settingsMenu.rootVisualElement.Q("sdrSound") as Slider;
@@ -143,8 +145,13 @@ public class SettingsMenu : MonoBehaviour
         { 
             quit = true;
         });
+        _exitSM.RegisterCallback<NavigationMoveEvent>((evt) => 
+        { 
+            _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
+        });
         _exitSM.RegisterCallback<PointerEnterEvent>((evt) => 
         { 
+            _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
             _exitSM.Focus();
         });
             _mute.RegisterCallback<ClickEvent>((evt) => 

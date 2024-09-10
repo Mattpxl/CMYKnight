@@ -10,6 +10,8 @@ public class Enemy : MonoBehaviour
         private Animator _animator;
         private AudioSource _audioSource;
         private AwarenessController _awarenessController;
+        private Camera _camera;
+        private PlayerControl _playerControl;
 
     private void Awake()
     {
@@ -19,12 +21,15 @@ public class Enemy : MonoBehaviour
         _levelManager = GetComponent<LayerManager>();
         _awarenessController = GetComponent<AwarenessController>();
         _audioSource = GetComponent<AudioSource>();
+        _playerControl = GameObject.Find("Player").GetComponent<PlayerControl>();
+        _camera = GameObject.Find("Main Camera").GetComponent<Camera>();
     }
 
     private void Start()
     {
         _audioSource.Stop();
-        _awarenessController.setTarget(GameObject.FindGameObjectWithTag("Player").transform.position);
+        Physics2D.IgnoreLayerCollision(10,10,true);
+        _awarenessController.setTarget(_playerControl.transform.position);
     }
 
     #endregion Initialization
@@ -54,6 +59,7 @@ public class Enemy : MonoBehaviour
                 0.1f
             );
         }
+        muteOffScreen();
     }
 
     #endregion Updates
@@ -77,6 +83,25 @@ public class Enemy : MonoBehaviour
             default: break;
         } else _audioSource.Stop();
             return dir * (move > 0 ? 1 : 0); 
+    }
+
+    private void muteOffScreen()
+    {
+         Vector2 screenPosition = _camera.WorldToScreenPoint(transform.position);
+        if 
+        (
+            screenPosition.x < 0 ||
+            screenPosition.x > _camera.pixelWidth ||
+            screenPosition.y < 0 ||
+            screenPosition.y > _camera.pixelHeight
+        )   
+        {
+            _audioSource.mute = true;
+        }
+        else 
+        {
+            _audioSource.mute = false;
+        }
     }
 
     #endregion Behaviour

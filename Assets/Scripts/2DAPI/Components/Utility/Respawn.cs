@@ -4,15 +4,20 @@ using UnityEngine;
 
 public class Respawn : MonoBehaviour
 {
-    // Start is called before the first frame update
+    public Vector2 _origin;
+    private PlayerControl _player;
     void Start()
     {
-        
+        _origin = transform.position;
+        _player = GameObject.FindFirstObjectByType<PlayerControl>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if(_player._isDead)
+        {
+            transform.position = _origin;
+        }
     }
 }

@@ -21,6 +21,7 @@ public class Moveable : MonoBehaviour
     [SerializeField] public bool _isVertical;
     [SerializeField] private float _speed;
     private AudioSource _audioSource;
+    private Camera _camera;
 
     void Awake()
     {
@@ -29,6 +30,7 @@ public class Moveable : MonoBehaviour
         _collider = GetComponent<Collider2D>();
         _audioSource = GetComponent<AudioSource>();
         _levelManager = GetComponent<LayerManager>();
+        _camera = GameObject.Find("Main Camera").GetComponent<Camera>();
     }
 
     void Start()
@@ -69,6 +71,7 @@ public class Moveable : MonoBehaviour
 
             move();
             groundCheck();
+            muteOffScreen();
         
     }
     // check for player contact if pushable 
@@ -108,6 +111,24 @@ public class Moveable : MonoBehaviour
                 );
             }
         } 
+    }
+    private void muteOffScreen()
+    {
+         Vector2 screenPosition = _camera.WorldToScreenPoint(transform.position);
+        if 
+        (
+            screenPosition.x < 0 ||
+            screenPosition.x > _camera.pixelWidth ||
+            screenPosition.y < 0 ||
+            screenPosition.y > _camera.pixelHeight
+        )   
+        {
+            _audioSource.mute = true;
+        }
+        else 
+        {
+            _audioSource.mute = false;
+        }
     }
 
     #endregion Behaviour

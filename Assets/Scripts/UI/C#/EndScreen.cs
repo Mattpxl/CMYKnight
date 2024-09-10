@@ -4,6 +4,7 @@ using UnityEngine.UIElements;
 public class EndScreen : MonoBehaviour
 {
     public UIDocument _endscreen;
+    private AudioSource _audioSource;
     private Button _restart;
     private Button _quit;
 
@@ -12,6 +13,7 @@ public class EndScreen : MonoBehaviour
     void Awake()
     {
         _endscreen = GetComponent<UIDocument>();
+        _audioSource = GetComponent<AudioSource>();
         _restart = _endscreen.rootVisualElement.Q("btnRestart") as Button;
         _quit = _endscreen.rootVisualElement.Q("btnQuit") as Button;
     }
@@ -35,8 +37,13 @@ public class EndScreen : MonoBehaviour
         { 
             quit = true;
         });
+        _quit.RegisterCallback<NavigationMoveEvent>((evt) => 
+        { 
+            _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
+        });
         _quit.RegisterCallback<PointerEnterEvent>((evt) => 
         { 
+            _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
             _quit.Focus();
         });
         _restart.RegisterCallback<ClickEvent>((evt) => 
@@ -47,8 +54,13 @@ public class EndScreen : MonoBehaviour
         { 
             restart = true;
         });
+        _restart.RegisterCallback<NavigationMoveEvent>((evt) => 
+        { 
+            _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
+        });
         _restart.RegisterCallback<PointerEnterEvent>((evt) => 
         { 
+            _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
             _restart.Focus();
         });
     }

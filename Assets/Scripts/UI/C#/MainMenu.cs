@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -8,11 +9,14 @@ public class MainMenu : MonoBehaviour
     public Button _start;
     public Button _settingsMM;
     public Button _quitMM;
+    private AudioSource _audioSource;
 
     public bool _openSettings, _quit, _canStart = false;
+
     private void Awake()
     {
         _mainMenu = GetComponent<UIDocument>();
+        _audioSource = GetComponent<AudioSource>();
         _start = _mainMenu.rootVisualElement.Q("btnStart") as Button;
         _settingsMM = _mainMenu.rootVisualElement.Q("btnSettingsMM") as Button;
         _quitMM = _mainMenu.rootVisualElement.Q("btnQuitMM") as Button;
@@ -40,8 +44,13 @@ public class MainMenu : MonoBehaviour
             { 
                 _canStart = true;
             });
+            _start.RegisterCallback<NavigationMoveEvent>((evt) => 
+            { 
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
+            });
             _start.RegisterCallback<PointerEnterEvent>((evt) => 
             { 
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
                 _start.Focus();
             });
             _settingsMM.RegisterCallback<ClickEvent>((evt) => 
@@ -52,8 +61,13 @@ public class MainMenu : MonoBehaviour
             { 
                 _openSettings = true;
             });
+            _settingsMM.RegisterCallback<NavigationMoveEvent>((evt) => 
+            { 
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
+            });
             _settingsMM.RegisterCallback<PointerEnterEvent>((evt) => 
             { 
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
                 _settingsMM.Focus();
             });
             _quitMM.RegisterCallback<ClickEvent>((evt) => 
@@ -64,8 +78,13 @@ public class MainMenu : MonoBehaviour
             { 
                 _quit = true;
             });
+            _quitMM.RegisterCallback<NavigationMoveEvent>((evt) => 
+            { 
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
+            });
             _quitMM.RegisterCallback<PointerEnterEvent>((evt) => 
             { 
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
                 _quitMM.Focus();
             });
     }

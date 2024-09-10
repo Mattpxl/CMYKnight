@@ -5,6 +5,7 @@ public class ConfirmationMenu : MonoBehaviour
 {
 
     public UIDocument _confirmationMenu;
+    private AudioSource _audioSource;
     private Button _yes;
     private Button _no;
 
@@ -13,6 +14,7 @@ public class ConfirmationMenu : MonoBehaviour
     void Awake()
     {
         _confirmationMenu = GetComponent<UIDocument>();
+        _audioSource = GetComponent<AudioSource>();
         _yes = _confirmationMenu.rootVisualElement.Q("btnYes") as Button;
         _no = _confirmationMenu.rootVisualElement.Q("btnNo") as Button;
     }
@@ -35,8 +37,13 @@ public class ConfirmationMenu : MonoBehaviour
         { 
             yes = true;
         });
+        _yes.RegisterCallback<NavigationMoveEvent>((evt) => 
+        { 
+            _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
+        });
         _yes.RegisterCallback<PointerEnterEvent>((evt) => 
         { 
+            _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
             _yes.Focus();
         });
         _no.RegisterCallback<ClickEvent>((evt) => 
@@ -47,8 +54,13 @@ public class ConfirmationMenu : MonoBehaviour
         { 
             no = true;
         });
-        _no.RegisterCallback<PointerEnterEvent>((evt) => 
+        _no.RegisterCallback<NavigationMoveEvent>((evt) => 
         { 
+            _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
+        });
+        _no.RegisterCallback<PointerEnterEvent>((evt) => 
+        {
+             _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
             _no.Focus();
         });
         

@@ -1,8 +1,6 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
 
 public class StateMachine : MonoBehaviour
 {
@@ -14,6 +12,7 @@ public class StateMachine : MonoBehaviour
     [SerializeField] private PauseMenu _pauseMenu;
     [SerializeField] private ConfirmationMenu _confirmationMenu;
     [SerializeField] private EndScreen _endscreen;
+    [SerializeField] private Splash _splashScreen;
     private bool _isPaused;
     private AudioSource _audioSource;
 
@@ -27,16 +26,33 @@ public class StateMachine : MonoBehaviour
         _isPaused = _playerControl._isPaused;
         AudioManager._instance._musicSource.loop = true;
         AudioManager._instance.playMusic("menu0");
-        //_playerControl._playerInput.SwitchCurrentActionMap("UI");
     }
 
     #endregion Initialization
 
     private void Update()
     {
-        // swap input from player to first focus element when paused and when menu is open, so forth for eavh get a starting point for nav to register
+        //splash screen
+        if(SceneManager.GetActiveScene() == SceneManager.GetSceneByBuildIndex(0))
+        {
+            if(_playerControl._startGame == true)
+        {
+            _splashScreen.startGame();
+            _playerControl._startGame = false;
+            _mainMenu._mainMenu.rootVisualElement.style.visibility = Visibility.Visible;
+        }
+        else
+        {
+            _splashScreen._splash.rootVisualElement.style.visibility = Visibility.Visible;
+            _settingsMenu.isDisabled();
+            _mainMenu.isDisabled();
+            _confirmationMenu.isDisabled();
+            _endscreen.isDisabled();
+            _pauseMenu.isDisabled();
+        }
+        }
         // Setting Menu
-        if(_settingsMenu._settingsMenu.rootVisualElement.style.visibility == Visibility.Visible) //_settingsMenu.isActiveAndEnabled == true
+        else if(_settingsMenu._settingsMenu.rootVisualElement.style.visibility == Visibility.Visible)
         {
             
             if(_settingsMenu.quit == true)
@@ -48,10 +64,11 @@ public class StateMachine : MonoBehaviour
             }
           }
           // Confirmation menu
-          else if (_confirmationMenu._confirmationMenu.rootVisualElement.style.visibility == Visibility.Visible) //_confirmationMenu.isActiveAndEnabled == true
+          else if (_confirmationMenu._confirmationMenu.rootVisualElement.style.visibility == Visibility.Visible)
           {
             if(_confirmationMenu.yes == true)
             {
+                _splashScreen._splash.rootVisualElement.style.visibility = Visibility.Visible;
                 AudioManager._instance._musicSource.Stop();
                 _audioSource.PlayOneShot(AudioManager._instance._sfxUI[5]._sound);
                 AudioManager._instance.playMusic("menu0");
@@ -69,8 +86,14 @@ public class StateMachine : MonoBehaviour
             }
           }
           //MainMenu
-          else if (_mainMenu._mainMenu.rootVisualElement.style.visibility == Visibility.Visible)//_mainMenu.isActiveAndEnabled == true
+          else if (_mainMenu._mainMenu.rootVisualElement.style.visibility == Visibility.Visible)
           {
+            _splashScreen._splash.rootVisualElement.style.visibility = Visibility.Hidden;
+            Time.timeScale = 0f;
+            AudioManager._instance._audioMixerGroup = AudioManager._instance._audioMixer.FindMatchingGroups("Master/Sounds/");
+            AudioManager._instance._audioMixerGroup[1].audioMixer.SetFloat("Player",  -80f);
+            AudioManager._instance._audioMixerGroup[2].audioMixer.SetFloat("World",  -80f);
+            AudioManager._instance._audioMixerGroup[3].audioMixer.SetFloat("Enemy",  -80f);
             //EventSystem.current.SetSelectedGameObject(_mainMenu._start);
             if (_mainMenu._canStart == true)
             {
@@ -95,11 +118,13 @@ public class StateMachine : MonoBehaviour
                 AudioManager._instance._musicSource.Stop();
                 _audioSource.PlayOneShot(AudioManager._instance._sfxUI[5]._sound);
                 SceneManager.LoadScene(0);
+                _splashScreen._splash.rootVisualElement.style.visibility = Visibility.Visible;
             }
           }
           // End Screen
-          else if (_endscreen._endscreen.rootVisualElement.style.visibility == Visibility.Visible) //_endscreen.isActiveAndEnabled == true
+          else if (_endscreen._endscreen.rootVisualElement.style.visibility == Visibility.Visible)
           {
+            Time.timeScale = 0f;
             if(_endscreen.quit == true)
             {
                 _audioSource.Stop();
@@ -120,7 +145,7 @@ public class StateMachine : MonoBehaviour
             }
           }
         // PauseMenu
-        else if (_pauseMenu._pauseMenu.rootVisualElement.style.visibility == Visibility.Visible) //_pauseMenu.isActiveAndEnabled == true
+        else if (_pauseMenu._pauseMenu.rootVisualElement.style.visibility == Visibility.Visible)
         {
             if(_pauseMenu._cont == true || _playerControl._isPaused == false)
             {
@@ -159,22 +184,17 @@ public class StateMachine : MonoBehaviour
             _runtimeUI._keyLabel.style.visibility = Visibility.Visible;
             _runtimeUI._keyLabel.label = "x" + _playerControl._keys;
             }
-            if (_playerControl._isDead) 
+            if (_playerControl._isDead == true) 
             {
-                //_playerControl._playerInput.SwitchCurrentActionMap("UI");
                 _endscreen.isEnabled();
             }
             else
             {
-                //_playerControl._playerInput.SwitchCurrentActionMap("Player");
                 _endscreen.isDisabled();
-            }   
-
-        }
-         _isPaused = _playerControl._isPaused;
+            } 
+            _isPaused = _playerControl._isPaused;
             if(_isPaused == true)
             {
-                //_playerControl._playerInput.SwitchCurrentActionMap("UI");
                 Time.timeScale = 0f;
                 _pauseMenu.isEnabled();
                 AudioManager._instance._audioMixerGroup = AudioManager._instance._audioMixer.FindMatchingGroups("Master/Sounds/");
@@ -184,14 +204,17 @@ public class StateMachine : MonoBehaviour
             }
             if(_isPaused == false)
             {
-                //_playerControl._playerInput.SwitchCurrentActionMap("Player");
                 Time.timeScale = 1f;
                 _pauseMenu.isDisabled();         
                 AudioManager._instance._audioMixerGroup = AudioManager._instance._audioMixer.FindMatchingGroups("Master/Sounds/");
                 AudioManager._instance._audioMixerGroup[1].audioMixer.SetFloat("Player", 0f);
                 AudioManager._instance._audioMixerGroup[2].audioMixer.SetFloat("World",  0f);
                 AudioManager._instance._audioMixerGroup[3].audioMixer.SetFloat("Enemy",  -5f);
-            }
+            }  
+
+        }
+           
+
     }
 
 }

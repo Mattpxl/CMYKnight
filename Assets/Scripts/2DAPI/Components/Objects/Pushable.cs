@@ -45,13 +45,13 @@ public class Pushable : MonoBehaviour
     [SerializeField] private Transform _topCheck;
     [SerializeField] private Transform _groundCheck;
     [SerializeField] private float radius;
-    private bool isGrounded = true, onTop = false, isFalling = false, hasPlayed = false;
+    public bool isGrounded = true, onTop = false, isFalling = false, hasPlayed = false;
 
     private Vector2 _velRef;
 
     private void topCheck()
     {
-        onTop = Physics2D.OverlapCircleAll(_topCheck.position, 0.28f, _levelManager.playerLayer).Length > 0 ? true : false;
+        onTop = Physics2D.OverlapCircleAll(_topCheck.position, 0.36f, _levelManager.playerLayer).Length > 0 ? true : false;
     }
      private void groundCheck()
     {
@@ -59,7 +59,11 @@ public class Pushable : MonoBehaviour
     }
     private void fallCheck()
     {
-        if(isGrounded == false && _rigidbody.velocity.y < 0) isFalling = true;
+        if(isGrounded == false && _rigidbody.velocity.y < 0) 
+        {
+            isFalling = true;
+            _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, _rigidbody.velocity.y*1.2f);
+        }
     }
     private void landCheck()
     {
@@ -92,14 +96,13 @@ public class Pushable : MonoBehaviour
                 &&
                 _rigidbody.velocity.x != 0f 
                 && hasPlayed == false
+                && isFalling == false
             )
             {
                
                 _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[5]._sound);
                 hasPlayed = true;
-                _rigidbody.velocity = Vector2.zero;
-                
-                    
+                _rigidbody.velocity = Vector2.zero;    
             }
             else if 
             (

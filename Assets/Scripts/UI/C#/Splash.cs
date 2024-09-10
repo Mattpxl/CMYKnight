@@ -1,29 +1,32 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using DataStorage;
+using UnityEngine.UIElements;
 
 
 public class Splash : MonoBehaviour
 {
-    private static PlayerData _playerData = new PlayerData();
+    public UIDocument _splash;
+    private static PlayerControl _playerControl;
     private TableEntry _playerLevel;
     private float _level;
 
     private void Awake()
     {
+        _playerControl = GameObject.Find("Player").GetComponent<PlayerControl>();
         _playerLevel = new TableEntry
         (
             "Level",
             "INT",
             1
         );
-        _playerData.initializeTable();
     }
     private void Start()
     {
-       _level = _playerData.loadPlayerValue(_playerLevel)._floatValue;
+       _level = _playerControl.loadPlayerValue(_playerLevel)._floatValue;
     }
-    public void OnEnter(){
+    public void startGame(){
+        _splash.rootVisualElement.style.visibility = Visibility.Hidden;
         SceneManager.LoadScene((int)_level == 0? 1 : (int)_level); 
     }
 
