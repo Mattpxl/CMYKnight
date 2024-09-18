@@ -156,6 +156,10 @@ public class MoveableTrigger : MonoBehaviour
             }
             StartCoroutine(pauseTime());
         } 
+        else 
+        {
+            _isGrounded = false;
+        }
     }
 
 #endregion Collisions

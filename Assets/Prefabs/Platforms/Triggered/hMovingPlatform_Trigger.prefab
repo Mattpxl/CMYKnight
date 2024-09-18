@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 207102933409332765}
   m_Layer: 14
   m_Name: hMovingPlatform_Trigger
-  m_TagString: Platform
+  m_TagString: TriggerPlatform
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -304,4 +304,4 @@ MonoBehaviour:
   _isHorizontal: 1
   _isVertical: 0
   _speed: 10
-  _pauseTime: 2
+  _pauseTime: 1
