@@ -17,6 +17,7 @@ public class SettingsMenu : MonoBehaviour
     private Resolution[] _resolutions;
     private int _resIndex;
     private int _saveIndex;
+    private int _prevIndex;
     private int[] _widths;
     private int[] _heights;
     private bool _isMute = false;
@@ -91,12 +92,15 @@ public class SettingsMenu : MonoBehaviour
         try
         {
             _fullscreen.value = Convert.ToBoolean(PlayerPrefs.GetInt("fullscreen"));
+            Screen.fullScreen = _fullscreen.value;
             //Convert.ToBoolean(JSONConverter.jsonConverter.getDataObject<int>("fullscreen"));
         }
         catch
         {
             _fullscreen.value = false;
+            Screen.fullScreen = _fullscreen.value;
         }
+       
     }
 
     private void InitializeResolutions()
@@ -119,17 +123,17 @@ public class SettingsMenu : MonoBehaviour
                 _resIndex = i;
             }
         }
-
-        try
-        {
-            _resolution.value = _resolution.choices[PlayerPrefs.GetInt("resolution")];
+    
+            _saveIndex = PlayerPrefs.GetInt("resolution");
+            if (_saveIndex < 0 || _saveIndex >= _resolutions.Length)  // Safety check to ensure valid index
+            {
+                _saveIndex = _resIndex;  // Fallback to current resolution if out of bounds
+            }   
+            _resolution.value = _resolution.choices[_saveIndex];
+            Screen.SetResolution(_widths[_saveIndex], _heights[_saveIndex], Screen.fullScreen);
             //_resolution.choices[JSONConverter.jsonConverter.getDataObject<int>("resolution")];
-        }
-        catch
-        {
-            _resolution.value = _resolution.choices[_resolution.index];
-            _saveIndex = _resolution.index;
-        }
+        
+
     }
 
     private void SetAudioLevel(string groupName, float level)
@@ -162,11 +166,16 @@ public class SettingsMenu : MonoBehaviour
         RegisterToggleCallbacks(_mute, () => _isMute = !_isMute);
         RegisterSliderCallbacks(_sound, "Sounds");
         RegisterSliderCallbacks(_music, "Music");
-        RegisterToggleCallbacks(_fullscreen, () => _fullscreen.value = !_fullscreen.value);
+        RegisterToggleCallbacks(_fullscreen, () => Screen.fullScreen = _fullscreen.value);
         _resolution.RegisterValueChangedCallback((evt) =>
         {
-            Screen.SetResolution(_widths[_resolution.index], _heights[_resolution.index], Screen.fullScreen);
-            _saveIndex = _resolution.index;
+            int selectedResIndex = _resolution.index;  // Get the selected resolution index
+            if (selectedResIndex >= 0 && selectedResIndex < _widths.Length)
+            {
+                Screen.SetResolution(_widths[selectedResIndex], _heights[selectedResIndex], Screen.fullScreen);
+                _saveIndex = selectedResIndex;  // Save the selected resolution index
+                //Debug.Log($"Resolution changed to: {_widths[selectedResIndex]} x {_heights[selectedResIndex]}");
+            }
         });
     }
 
@@ -217,6 +226,7 @@ public class SettingsMenu : MonoBehaviour
         PlayerPrefs.SetFloat("music", _music.value);
         PlayerPrefs.SetInt("fullscreen", Convert.ToInt32(_fullscreen.value));
         PlayerPrefs.SetInt("resolution", _saveIndex);
+        PlayerPrefs.Save();
         //JSONConverter.jsonConverter.writeData(_mute.value, "mute");
         //JSONConverter.jsonConverter.writeData(_sound.value, "sound");
         //JSONConverter.jsonConverter.writeData(_music.value, "music");
