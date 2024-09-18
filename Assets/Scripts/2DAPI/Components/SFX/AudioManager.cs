@@ -19,11 +19,31 @@ public class AudioManager : MonoBehaviour
             DontDestroyOnLoad(gameObject);
         } else Destroy(gameObject);
     }
-    void Start()
+     // This function sets the audio levels for the specified groups
+    public void SetAudioMixerLevels(string group1, string group2, string group3, float level)
     {
-       // _audioMixerGroup = _audioMixer.FindMatchingGroups("Master/Sounds/");
-       // _audioMixer.outputAudioMixerGroup = _audioMixerGroup[0];
+        // Find and set the audio levels for the specified groups
+        SetAudioLevelForGroup(group1, level);
+        SetAudioLevelForGroup(group2, level);
+        SetAudioLevelForGroup(group3, level);
     }
+
+    // Helper function to set the level for a single group
+    private void SetAudioLevelForGroup(string groupName, float level)
+    {
+        AudioMixerGroup[] groups = _audioMixer.FindMatchingGroups($"{groupName}");
+        
+        if (groups.Length > 0)
+        {
+            // Set the level for the first matching group
+            groups[0].audioMixer.SetFloat(groupName, level);
+        }
+        else
+        {
+            Debug.LogWarning($"AudioManager: No matching audio group found for '{groupName}'");
+        }
+    }
+
 
     public void playMusic(string name)
     {

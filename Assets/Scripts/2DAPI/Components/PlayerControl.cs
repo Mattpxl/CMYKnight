@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using DataStorage;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 
 /// <summary>
 /// Player Control for 2D Platformer
@@ -22,8 +24,9 @@ public class PlayerControl : MonoBehaviour
     /// Initlialize Components 
     /// </summary>
     #region Initialization
+        
+            public SpawnPoint _spawnPoint;
             private LayerManager _levelManager;
-            [SerializeField] private SpawnPoint _spawnPoint;
             private Rigidbody2D _rigidbody;
             private CapsuleCollider2D _collider;
             private Animator _animator;
@@ -37,7 +40,6 @@ public class PlayerControl : MonoBehaviour
         _animator = GetComponent<Animator>();
         _audioSource = GetComponent<AudioSource>();
         _levelManager = GetComponent<LayerManager>();
-        _sqlConverter = new SQLConverter();
     }
 
     #endregion Initialization
@@ -49,151 +51,109 @@ public class PlayerControl : MonoBehaviour
     /// > Add _tableEntry = loadPlayerValue(_playerTableEntry)._intValue;._floatValue;._stringValue; to Start()
     /// </summary>
    #region Data
-    private SQLConverter _sqlConverter;
-    private TableEntry[] _playerDataSet;
-    private static TableEntry _playerLevel;
-    private static TableEntry _playerLives;
-    private static TableEntry _playerKeys;
-    private static string[] _valueTypes = new string[3]
+  
+    private List<TableEntry> _playerDataSet;
+    private TableEntry _playerLevel;
+    private TableEntry _playerLives;
+    private TableEntry _playerKeys;
+    private static readonly List<string> _valueTypes = new()
             {
                 "INT",
                 "REAL", 
                 "REAL",
             };
-    private static string[] _valueNames = new string[3]
+    private static readonly List<string> _valueNames = new()
             {
                 "Level",
                 "Lives", 
                 "Keys",
             };
-    private static ValueTable  _playerData = new ValueTable
+    private static readonly ValueTable  _playerData = new ValueTable
         (
             "PlayerData",
             _valueNames,
             _valueTypes
         );
     //primary access key
-    private static TableEntry _playerTableID = new TableEntry
+    private static readonly TableEntry _playerTableID = new TableEntry
         (
             "PlayerData_id",
             "INT",
             1
         );
-    private static TableEntry _playerLevelDefault = new TableEntry
-        (
-            "Level",
-            "INT",
-            1
-        );
-    private static TableEntry _playerLivesDefault = new TableEntry
-        (
-            "Lives",
-            "REAL",
-            3
-        );
-    private static TableEntry _playerKeysDefault = new TableEntry
-        (
-            "Keys",
-            "REAL",
-            0
-        );
-        private TableEntry[] _playerAccessDataSet = new TableEntry[4]
-        {
-            _playerTableID,
-            _playerLevelDefault,
-            _playerLivesDefault,
-            _playerKeysDefault
-        };
+    // default values
+    private static readonly Dictionary<string, TableEntry> _defaultValues = new()
+    {
+        {"Level", new TableEntry("Level", "INT", 1)},
+        {"Lives", new TableEntry("Lives", "REAL", 3)},
+        {"Keys", new TableEntry("Keys", "REAL", 0)}
+    };
+
+    private static readonly Dictionary<string, TableEntry> _cachedPlayerValues = new();
     
     private void initializeTable()
     {
-        _playerLevel = new TableEntry
-        (
-            "Level",
-            "INT",
-            0
-        );
-        _playerLives = new TableEntry
-        (
-            "Lives",
-            "REAL",
-            _lives
-        );
-        _playerKeys = new TableEntry
-        (
-            "Keys",
-            "REAL",
-            _keys
-        );
-        _playerDataSet = new TableEntry[3]
+        _playerLevel = new TableEntry("Level", "INT", _level);
+        _playerLives = new TableEntry("Lives", "REAL", _lives);
+        _playerKeys = new TableEntry ("Keys", "REAL", _keys);
+        _playerDataSet = new() 
         {
             _playerLevel,
             _playerLives,
             _playerKeys
         };
-        _sqlConverter.generateTable(_playerData);
-    }
-     public TableEntry loadPlayerValue(TableEntry entry)
-    {
-        TableEntry defaultValue = new TableEntry();
-        foreach (TableEntry e in _playerAccessDataSet)
-        {
-            if (e._valueName == entry._valueName) defaultValue = e;
-        }
-        TableEntry value = new TableEntry();
-        switch (entry._valueType)
-        {
-            case "TEXT":
-                value = _sqlConverter.getValue(_playerData, entry, _playerTableID)._stringValue == null ? defaultValue : _sqlConverter.getValue(_playerData, entry, _playerTableID);
-                break;
-            case "REAL":
-                value = _sqlConverter.getValue(_playerData, entry, _playerTableID)._floatValue == 0 ? defaultValue : _sqlConverter.getValue(_playerData, entry, _playerTableID);
-                break;
-            case "INT":
-                value = _sqlConverter.getValue(_playerData, entry, _playerTableID)._intValue == 0 ? defaultValue : _sqlConverter.getValue(_playerData, entry, _playerTableID);
-                break;
-        }
-        return value;
+        SQLConverter.sqlConverter.generateTable(_playerData);
+        loadCachePlayerValues();
     }
 
+    private void loadCachePlayerValues()
+    {
+        var playerValues = SQLConverter.sqlConverter.getValues(_playerData,new(){_playerTableID});
+
+        foreach(var entry in playerValues)
+        {   
+            _cachedPlayerValues[entry._valueName] = entry;
+        }
+        foreach(var key in _valueNames)
+        {
+            if(!_cachedPlayerValues.ContainsKey(key))
+            {
+                _cachedPlayerValues[key] = _defaultValues[key];
+            }
+        }
+    }
+    public TableEntry loadPlayerValue(string valueName)
+    {
+        return _cachedPlayerValues.ContainsKey(valueName)
+            ? _cachedPlayerValues[valueName]
+            : _defaultValues[valueName];
+    }
     private void Start()
     {
         initializeTable();
-        try
-        {
-            _level = loadPlayerValue(_playerLevel)._intValue;
-        }
-        catch
-        {
-            _level = _playerLevelDefault._intValue;
-        }
-        try
-        {
-            _lives = loadPlayerValue(_playerLives)._floatValue;
-        }
-        catch
-        {
-            _lives = _playerLivesDefault._floatValue;
-        }
-        try
-        {
-            _keys = loadPlayerValue(_playerKeys)._floatValue;
-        }
-        catch
-        {
-            _keys = _playerLivesDefault._floatValue;
-        }
+        
+        _level = (int)loadPlayerValue("Level")._value;
+        
+        _lives = (float)(int)loadPlayerValue("Lives")._value;
+        
+        _keys = (float)(int)loadPlayerValue("Keys")._value;
+        
         _audioSource.Stop();
     }
     private void OnApplicationQuit()
     {
-        try
+        SavePlayerData();
+    }
+
+    public void SavePlayerData()
+    {
+         try
         {
-            _sqlConverter.updateTable(_playerData, _playerDataSet, _playerTableID);
+            SQLConverter.sqlConverter.updateTable(_playerData, _playerDataSet, new(){_playerTableID});
         }
         catch
         {
-            Debug.Log("PLayerControl: -Data Failed To Save-\n");
+            Debug.Log("PlayerControl: -Data Failed To Save-\n");
         }
     }
 
@@ -203,23 +163,23 @@ public class PlayerControl : MonoBehaviour
     /// Keep Track of Player Stats and Health
     /// </summary>
     #region Status
-
-    [Header("Status")]
-    public int _level = 0; // get from scene manager 
-    [SerializeField] public float _lives;
-    [SerializeField] public float _keys;
-    public bool _isDead = false;
+    public int _level { get; set; } 
+    public float _lives { get; set; } 
+    public float _keys { get; set; } 
+    public bool _isDead { get; set; } = false;
+    public bool _resetLevel { get; set; } = false;
 
     private void takeDamage() 
     { 
-        if(_lives >= 1) {
+        if(_lives > 0) {
             _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[6]._sound);
             _lives--;
             isGrounded = _rigidbody.velocity.y <= 0;
         }
-        else  
+        else 
         {
             _isDead = true; 
+            dead();
         } 
         
     }
@@ -228,25 +188,21 @@ public class PlayerControl : MonoBehaviour
     {
         if(_isDead == true)
         {
-            isGrounded = false;
             AudioManager._instance._musicSource.Stop();
             _audioSource.Stop();
-            if(_audioSource.isPlaying == false)_audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[4]._sound);
+            if(!_audioSource.isPlaying) _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[4]._sound);
+            _resetLevel = true;
         }
     }
-    public void spawn() 
-    { 
-        _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[3]._sound);
-        transform.position = _spawnPoint._spawnPoint.position;
-        _isDead = false; 
-        if (_lives <= 0f) _lives = 3f;
-    }
-    public void respawn() 
+
+    public void respawn(bool fullRespawn = false) 
     { 
         _audioSource.Stop();
         _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[3]._sound);
+        _spawnPoint.UpdateSpawn();
         transform.position = _spawnPoint._spawnPoint.position; 
-        _lives = 3f;
+        if(fullRespawn)_lives = 3f;
+        _resetLevel = false;
         _isDead = false; 
     }
 
@@ -257,31 +213,45 @@ public class PlayerControl : MonoBehaviour
    /// > FixedUpdate()
    /// </summary>
    #region Updates
+private void FixedUpdate()
+{
+    // Handle Collisions
+    HandleCollisions();
+    
+    // Handle Movement
+    HandleMovement();
+}
 
-   // private void Update(){ } // runs on pause
-    private void FixedUpdate()
+private void HandleCollisions()
+{
+    // Collisions
+    groundCheck();
+    ceilingCheck();
+    
+    // Only check walls when the player is moving
+    if ( _movementInput.x != 0)
     {
-        // Collisions
-        groundCheck();
-        ceilingCheck();
-        wallCheck();
         collectCheck();
         interactableCheck();
-        hazardCheck();
-        // Movement
-        move();
-        stopMovingX();
-        jump();
-        nudge();
-        assistUpward();
-        modifyApex();
-        wallSlide();
-        fall();
-        land();
-        //status
-        dead();
+        if(!isGrounded) wallCheck();
     }
-    #endregion Updates
+    // Hazard check can be done consistently
+    hazardCheck();
+}
+
+private void HandleMovement()
+{
+    move();
+    jump();
+    //nudge();
+    //assistUpward();
+    //modifyApex();
+    //wallSlide();
+    fall();
+    land();
+}
+#endregion Updates
+
     
     /// <summary>
     /// Recieve Input from Unity Input System
@@ -291,33 +261,27 @@ public class PlayerControl : MonoBehaviour
     public bool _startGame;
     private void OnMove(InputValue inputValue)
     {
-        _movementInput = inputValue.Get<Vector2>() == Vector2.zero ? Vector2.zero : inputValue.Get<Vector2>();
+        _movementInput = inputValue.Get<Vector2>();
+        _isMoving = true;
         // animation
-        _animator.SetFloat("xVelocity", inputValue.Get<Vector2>().x == -1f ? 1 : inputValue.Get<Vector2>().x);
+        _animator.SetFloat("xVelocity", Mathf.Abs(_movementInput.x));
 
         if(isGrounded)
-        switch(UnityEngine.Random.Range(0,1)) 
-        { 
-            case 0: _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[0]._sound); break; 
-            case 1: _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[1]._sound); break; 
-            default: break;
+        {
+            int soundIndex = UnityEngine.Random.Range(0,1);
+            _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[soundIndex]._sound);
         }
         // flip
-        if (inputValue.Get<Vector2>().x != 0f && inputValue.Get<Vector2>().x < 0f)
+        if (inputValue.Get<Vector2>().x != 0f)
         {
-            transform.localScale = new Vector3(-1, 1, 1);
-        }
-        else if (inputValue.Get<Vector2>().x != 0f && inputValue.Get<Vector2>().x > 0f)
-        {
-            transform.localScale = new Vector3(1, 1, 1);
+            transform.localScale = new Vector3(Mathf.Sign(_movementInput.x), 1, 1);
         }
     }
-      private void OnJump()
+    private void OnJump()
     {
-        if( (isGrounded || _coyoteJump) && _canJump == true)
+        if( (isGrounded || _coyoteJump) && _canJump)
         { 
             _isJumping = true;
-            StartCoroutine(CanJumpDelay());
         }
     }
     private void OnPause()
@@ -330,7 +294,9 @@ public class PlayerControl : MonoBehaviour
     private void OnEnter()
     {
         if(SceneManager.GetActiveScene() == SceneManager.GetSceneByBuildIndex(0))
+        {
             _startGame = true;
+        }
     }
 
     #endregion Input
@@ -341,35 +307,38 @@ public class PlayerControl : MonoBehaviour
     #region Horizontal Movement
 
     [Header("Horizontal Movement")]
-    [SerializeField] private float _speed;
+    [SerializeField] private float _speed = 4f;
     private Vector2 _movementInput, _velocityRef;
     private bool _isMoving = false;
+    private readonly float _velocityTransitionSpeed = 0.1f;
     private void move()
     {
-        _isMoving = true;
-        _rigidbody.velocity = Vector2.SmoothDamp
-        (
-            _rigidbody.velocity,
-            new Vector2(_movementInput.x * _speed, _rigidbody.velocity.y),
-            ref _velocityRef,
-            0.1f
-        );
-    }
-
-    private void stopMovingX()
-    {
-        if(_isMoving = true && _rigidbody.velocity.x == 0)
+        if(_isMoving)
         {
             _rigidbody.velocity = Vector2.SmoothDamp
             (
                 _rigidbody.velocity,
-                new Vector2(0f, -_rigidbody.velocity.y),
+                new Vector2(_movementInput.x * _speed, _rigidbody.velocity.y),
                 ref _velocityRef,
                 0.1f
             );
-            _isFalling = true;
         }
-        
+    }
+    private void stopMovingX()
+    {
+        if (_isMoving && Mathf.Abs(_rigidbody.velocity.x) <= 0.01f)
+        {
+        _isMoving = false; 
+        }
+    }
+    // Generic method to smooth and clamp velocity
+    private void applyVelocity(Vector2 targetVelocity, float magnitude)
+    {
+        _rigidbody.velocity = Vector2.ClampMagnitude
+        (
+            Vector2.SmoothDamp(_rigidbody.velocity, targetVelocity, ref _velocityRef, _velocityTransitionSpeed),
+            magnitude
+        );
     }
 
     #endregion Horizontal Movement
@@ -380,53 +349,35 @@ public class PlayerControl : MonoBehaviour
     #region Vertical Movement
 
     [Header("Vertical Movement")]
-    [SerializeField] private float _jumpForce;
-    [SerializeField] private float _jumpMagnitude;
-    [SerializeField] private float _fallSpeed;
-    [SerializeField] private float _fallMagnitude;
-    [SerializeField] private float _nudgeSpeed;
-    [SerializeField] private float _nudgeMagnitude;
-    [SerializeField] private float _upAssistSpeed;
-    [SerializeField] private float _upAssistMagnitude;
+    [SerializeField] private float _jumpForce = 30f;
+    [SerializeField] private float _jumpMagnitude = 20f;
+    [SerializeField] private float _fallSpeed = 1.4f;
+    [SerializeField] private float _fallMagnitude = 13f;
+    [SerializeField] private float _nudgeSpeed = 1.1f;
+    [SerializeField] private float _nudgeMagnitude = 1.3f;
+    [SerializeField] private float _upAssistSpeed = 0f;
+    [SerializeField] private float _upAssistMagnitude = 0f;
     private bool _isFalling = false;
     private bool _isJumping = false;
     private bool _canAssist = true;
     private void jump()
     {
-        if (_isJumping) {
-        _canModify = true;
-        _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[5]._sound);
-        _rigidbody.velocity = Vector2.ClampMagnitude 
-        (
-            Vector2.SmoothDamp
-            (
-                _rigidbody.velocity,
-                new Vector2(_rigidbody.velocity.x, _jumpForce * Vector2.up.y),
-                ref _velocityRef,
-                0.1f
-            ), 
-            _jumpMagnitude
-        );
-        _isJumping = false;
+        if (_isJumping) 
+        {
+            _canModify = true;
+            _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[5]._sound);
+            applyVelocity(new Vector2(_rigidbody.velocity.x, _jumpForce * Vector2.up.y),_jumpMagnitude);
+            _isJumping = false;
+            StartCoroutine(CanJumpDelay());
         }
     }
     private void fall()
     {
-        if(isGrounded == false && _rigidbody.velocity.y < 0) _isFalling = true;
-        else _isFalling = false;
-        if(_isFalling == true)
+        if(!isGrounded && _rigidbody.velocity.y < 0)
         {
-           _rigidbody.velocity = Vector2.ClampMagnitude 
-            (
-                Vector2.SmoothDamp
-                (
-                    _rigidbody.velocity,
-                    new Vector2(_rigidbody.velocity.x, _rigidbody.velocity.y * _fallSpeed),
-                    ref _velocityRef,
-                    0.1f
-                ), 
-                _fallMagnitude
-            );
+            _isFalling = true;
+            float clampedYVelocity = Mathf.Max(_rigidbody.velocity.y, -_fallMagnitude);
+            applyVelocity(new Vector2(_rigidbody.velocity.x, clampedYVelocity * _fallSpeed), _fallMagnitude);
         }
     }
     private void land()
@@ -436,76 +387,44 @@ public class PlayerControl : MonoBehaviour
             _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[2]._sound);
             _isFalling = false;
             _canAssist = true;
+        
         }
     }
     private void modifyApex()
     {
-        if(_rigidbody.velocity.y == 0)
+        if(_rigidbody.velocity.y < 0.01f && !isGrounded)
         {
-            StartCoroutine(ApexModifierDelay());
+           StartCoroutine(ApexModifierDelay());
            if(_canModify)
            {
               _rigidbody.velocity = new Vector2(_rigidbody.velocity.x, 0f);
-              _rigidbody.gravityScale = 0f;
+              _rigidbody.gravityScale = 0.5f;
            } 
            _rigidbody.gravityScale = 1f;
         }  
     }
-
     private void nudge()
     {
-        if((hitCeiling == true && isGrounded == false))
+        if(hitCeiling && !isGrounded)
         {
-            _rigidbody.velocity = Vector2.ClampMagnitude 
-            (
-                 Vector2.SmoothDamp
-                (
-                    _rigidbody.velocity,
-                    new Vector2(_rigidbody.velocity.x * _nudgeSpeed, _rigidbody.velocity.y * _nudgeSpeed),
-                    ref _velocityRef,
-                    0.1f
-                ),
-                _nudgeMagnitude
-            );
+            applyVelocity(new Vector2(_rigidbody.velocity.x * _nudgeSpeed, _rigidbody.velocity.y * _nudgeSpeed),_nudgeMagnitude);
         }
     }
-
     private void assistUpward()
     {
-        if((hitRight || hitLeft) && _rigidbody.velocity.y > 0 && _canAssist == true) 
+        if((hitRight || hitLeft) && _rigidbody.velocity.y > 0 && _canAssist) 
         {
-             _rigidbody.velocity = Vector2.ClampMagnitude 
-            (
-                 Vector2.SmoothDamp
-                (
-                    _rigidbody.velocity,
-                    new Vector2(_rigidbody.velocity.x * _upAssistSpeed, _rigidbody.velocity.y * _upAssistSpeed),
-                    ref _velocityRef,
-                    0.1f
-                ),
-                _upAssistMagnitude
-            );
+            applyVelocity(new Vector2(_rigidbody.velocity.x * _upAssistSpeed, _rigidbody.velocity.y * _upAssistSpeed),_upAssistMagnitude);
             _canAssist = false;
         }
     } 
     private void wallSlide()
     {
-        if((hitRight || hitLeft) && _canAssist == false)
+        if((hitRight || hitLeft))
         {
-            _rigidbody.velocity = Vector2.ClampMagnitude 
-            (
-                Vector2.SmoothDamp
-                (
-                    _rigidbody.velocity,
-                    new Vector2(0f, _rigidbody.velocity.y * _fallSpeed),
-                    ref _velocityRef,
-                    0.1f
-                ), 
-                _fallMagnitude
-            );
+            applyVelocity(new Vector2(0f, -(_rigidbody.velocity.y * _fallSpeed)),_fallMagnitude);
         }
     }
-
 
     #endregion Vertical Movement
 
@@ -522,15 +441,15 @@ public class PlayerControl : MonoBehaviour
     [SerializeField] private Transform ceilingCheckObj;
     [SerializeField] private Transform leftCheckObj;
     [SerializeField] private Transform rightCheckObj;
-    private const float radius = 0.1f;
+    private readonly float radius = 0.1f;
     private bool isGrounded, wasGrounded, hitCeiling, hitLeft, hitRight;
 
     private void groundCheck()
     {
         wasGrounded = isGrounded;
-        isGrounded = Physics2D.OverlapCircleAll(groundCheckObj.position, radius, _levelManager.groundLayer).Length > 0 ? true : false;
+        isGrounded = Physics2D.OverlapCircle(groundCheckObj.position, radius, _levelManager.groundLayer);
 
-        if (wasGrounded)
+        if (wasGrounded && !isGrounded)
         { 
             StartCoroutine(CoyoteJumpDelay()); 
         }
@@ -538,12 +457,12 @@ public class PlayerControl : MonoBehaviour
     }
     private void ceilingCheck()
     {
-        hitCeiling = Physics2D.OverlapCircleAll(ceilingCheckObj.position, 0.3f, _levelManager.groundLayer).Length > 0 ? true : false;
+        hitCeiling = Physics2D.OverlapCircle(ceilingCheckObj.position, 0.3f, _levelManager.groundLayer);
         platformCheck();
     }
     private void hazardCheck()
     {
-      if(Physics2D.IsTouchingLayers(_collider, _levelManager.hazardLayer)  && _isImmune == false)
+      if(Physics2D.IsTouchingLayers(_collider, _levelManager.hazardLayer)  && !_isImmune)
       {
         takeDamage();
         StartCoroutine(DamageImmunity());
@@ -551,49 +470,59 @@ public class PlayerControl : MonoBehaviour
     }
     private void wallCheck()
     {
-        hitLeft = (Physics2D.OverlapCircleAll(leftCheckObj.position, 0.5f, _levelManager.groundLayer).Length > 0 && isGrounded == false && transform.localScale.x == -1) ? true : false;
-        hitRight = (Physics2D.OverlapCircleAll(rightCheckObj.position, 0.5f, _levelManager.groundLayer).Length > 0 && isGrounded == false && transform.localScale.x == 1) ? true : false;
+        hitLeft = Physics2D.OverlapCircle(leftCheckObj.position, 0.3f, _levelManager.groundLayer) && !isGrounded && transform.localScale.x == -1;
+        hitRight = Physics2D.OverlapCircle(rightCheckObj.position, 0.3f, _levelManager.groundLayer) && !isGrounded && transform.localScale.x == 1;
     }
     private void collectCheck()
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(_rigidbody.position, 0.5f, _levelManager.collectableLayer);
-        if (colliders.Length > 0)
+        Collider2D collider = Physics2D.OverlapCircle(_rigidbody.position, 0.5f, _levelManager.collectableLayer);
+        if (collider != null)
         {
-             if (colliders[0].gameObject.CompareTag("Heart"))
+             if (collider.CompareTag("Heart"))
                 {
                     _audioSource.PlayOneShot(AudioManager._instance._sfxItem[0]._sound);
-                    Destroy(colliders[0].gameObject);
-                    ++_lives;
+                    Destroy(collider.gameObject);
+                    _lives++;
                 }
-                else if (colliders[0].gameObject.CompareTag("Key"))
+                else if (collider.CompareTag("Key"))
                 {
                     _audioSource.PlayOneShot(AudioManager._instance._sfxItem[1]._sound);
-                    Destroy(colliders[0].gameObject);
-                    ++_keys;
+                    Destroy(collider.gameObject);
+                    _keys++;
                 }
         }
     }
     private void interactableCheck()
     {
-         Collider2D[] colliders = Physics2D.OverlapCircleAll(_rigidbody.position, 0.5f, _levelManager.interactableLayer);
-        if (colliders.Length > 0)
+        Collider2D collider = Physics2D.OverlapCircle(_rigidbody.position, 0.5f, _levelManager.interactableLayer);
+        if (collider != null)
         {
-            if (colliders[0].gameObject.CompareTag("Door") && _keys >= 1)
+            if (collider.CompareTag("Door"))
             {
-                _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[0]._sound);
-                Destroy(colliders[0].gameObject);
-                --_keys;
-            } 
-            else if(colliders[0].gameObject.CompareTag("Push Block"))
-            {
-                if
-                (
-                    colliders[0].gameObject.GetComponent<Rigidbody2D>().velocity.x != 0  && 
-                    colliders[0].gameObject.GetComponent<AudioSource>().isPlaying == false 
-                    && colliders[0].gameObject.GetComponent<Pushable>().onTop == false
-                )
+                if(_keys >= 1)
                 {
-                    colliders[0].gameObject.GetComponent<AudioSource>().PlayOneShot(AudioManager._instance._sfxWorld[1]._sound);
+                    _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[0]._sound);
+                    Destroy(collider.gameObject);
+                    --_keys;
+                }
+                else
+                {
+                    if (_canPlayReject)
+                    {
+                        _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[6]._sound);
+                        StartCoroutine(PlayDoorRejection());
+                    }
+                }
+            } 
+            else if(collider.CompareTag("Push Block"))
+            {
+                Rigidbody2D blockRigidBody = collider.GetComponent<Rigidbody2D>();
+                AudioSource blockAudioSource = collider.GetComponent<AudioSource>();
+                Pushable pushableComponent = collider.GetComponent<Pushable>();
+
+                if(blockRigidBody.velocity.x != 0  && !blockAudioSource.isPlaying && !pushableComponent.onTop)
+                {
+                    blockAudioSource.PlayOneShot(AudioManager._instance._sfxWorld[1]._sound);
                 }
             }
         }
@@ -601,34 +530,38 @@ public class PlayerControl : MonoBehaviour
 
     private void platformCheck()
     {  
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(ceilingCheckObj.position, 0.3f, _levelManager.platformLayer);
-        if (colliders.Length > 0)
+        Collider2D collider = Physics2D.OverlapCircle(ceilingCheckObj.position, 0.3f, _levelManager.platformLayer);
+        if (collider != null)
         {
             Physics2D.IgnoreLayerCollision(3, 14, true);
             StartCoroutine(PlatfromCollisonDelay());
                  
         }
-        colliders = Physics2D.OverlapCircleAll(groundCheckObj.position, 0.3f, _levelManager.platformLayer);
-        if(isGrounded == true && _canCollidePlatform == true && colliders.Length > 0)
+        collider = Physics2D.OverlapCircle(groundCheckObj.position, 0.3f, _levelManager.platformLayer);
+        if(isGrounded && _canCollidePlatform && collider != null)
         {
             Physics2D.IgnoreLayerCollision(3, 14, false);
-            if(colliders[0].gameObject.GetComponent<Moveable>()._isHorizontal == true)
-                _rigidbody.velocity = new Vector2 (colliders[0].gameObject.GetComponent<Rigidbody2D>().velocity.x * 1.15f, _rigidbody.velocity.y);
-               
+            if(collider.CompareTag("Platform") && collider.GetComponent<Moveable>()._isHorizontal)
+            {
+                _rigidbody.velocity = new Vector2 (collider.GetComponent<Rigidbody2D>().velocity.x * 1.15f, _rigidbody.velocity.y);
+            }  
+            MoveableTrigger moveableTrigger = collider.GetComponent<MoveableTrigger>();
+            if(collider.CompareTag("TriggerPlatform") && collider.GetComponent<MoveableTrigger>()._isHorizontal)
+            {
+                _rigidbody.velocity = new Vector2 (collider.GetComponent<Rigidbody2D>().velocity.x * 1.15f, _rigidbody.velocity.y);
+            } 
         }
     }
    
     #endregion Collisions
 
     /// <summary>
-    /// Place to put Coroutines
-    /// > Coyote Jump
-    /// > Damage Immunity
+    /// Generalized coroutine Function
     /// </summary>
     #region Coroutines
 
     [Header("Coroutines")]
-    [SerializeField] private float _coyoteTime;
+    [SerializeField] private float _coyoteTime = 0.3f;
     private bool _coyoteJump = false;
     private IEnumerator CoyoteJumpDelay()
     {
@@ -636,7 +569,7 @@ public class PlayerControl : MonoBehaviour
         yield return new WaitForSeconds(_coyoteTime);
         _coyoteJump = false;
     }
-    [SerializeField] private float _jumpDelay;
+    [SerializeField] private float _jumpDelay = 0.4f;
     private bool _canJump = true;
     private IEnumerator CanJumpDelay()
     {
@@ -644,33 +577,39 @@ public class PlayerControl : MonoBehaviour
         yield return new WaitForSeconds(_jumpDelay);
         _canJump = true;
     }
-
-    [SerializeField] private float _immunityTime;
+    [SerializeField] private float _immunityTime = 2f;
     private bool _isImmune = false;
-    private IEnumerator DamageImmunity()
+     private IEnumerator DamageImmunity()
     {
         _isImmune = true;
         yield return new WaitForSeconds(_immunityTime);
         _isImmune = false;
     }
-    [SerializeField] private float _apexModifier;
+    [SerializeField] private float _apexModifier = 0f;
     private bool _canModify = true;
-
     private IEnumerator ApexModifierDelay()
     {
         _canModify = true;
         yield return new WaitForSeconds(_apexModifier);
         _canModify = false;
     }
-
-    [SerializeField] private float _platformCollisionDelay;
+    [SerializeField] private float _platformCollisionDelay = 1f;
     private bool _canCollidePlatform;
-
     private IEnumerator PlatfromCollisonDelay()
     {
         _canCollidePlatform = false;
         yield return new WaitForSeconds(_platformCollisionDelay);
         _canCollidePlatform = true;
+    }
+
+    [SerializeField] private float _doorRejctionDelay = 3f;
+    private bool _canPlayReject = true;
+
+    private IEnumerator PlayDoorRejection()
+    {
+        _canPlayReject = false;
+        yield return new WaitForSeconds(_doorRejctionDelay);
+        _canPlayReject = true;
     }
 
     #endregion Coroutines

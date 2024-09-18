@@ -5,20 +5,24 @@ public class RunTimeUI : MonoBehaviour
 {
     #region Initialization
 
-    public UIDocument _runtimeUI;
-    public VisualElement _heart;
-    public VisualElement _key;
-    public  TextField _heartLabel;
-    public TextField _keyLabel;
-    
+    public UIDocument RuntimeUI;
+    public VisualElement Heart;
+    public VisualElement Key;
+    public TextField HeartLabel;
+    public TextField KeyLabel;
+
     public void Awake()
     {
-        _runtimeUI = GetComponent<UIDocument>();
-        _heart = _runtimeUI.rootVisualElement.Q("veHeart");
-        _key  = _runtimeUI.rootVisualElement.Q("veKey");
-        _heartLabel = _runtimeUI.rootVisualElement.Q("txtHeart") as TextField;
-        _keyLabel = _runtimeUI.rootVisualElement.Q("txtKey") as TextField;
+        RuntimeUI = GetComponent<UIDocument>();
+        Heart = RuntimeUI.rootVisualElement.Q<VisualElement>("veHeart");
+        Key = RuntimeUI.rootVisualElement.Q<VisualElement>("veKey");
+        HeartLabel = RuntimeUI.rootVisualElement.Q<TextField>("txtHeart");
+        KeyLabel = RuntimeUI.rootVisualElement.Q<TextField>("txtKey");
+
+        if (Heart == null || Key == null || HeartLabel == null || KeyLabel == null)
+        {
+            Debug.LogError("RunTimeUI: One or more UI elements are missing.");
+        }
     }
     #endregion Initialization
-   
 }

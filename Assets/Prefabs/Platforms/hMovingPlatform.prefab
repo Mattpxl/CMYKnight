@@ -12,9 +12,9 @@ GameObject:
   - component: {fileID: 7165633415487382356}
   - component: {fileID: 9104544750548860708}
   - component: {fileID: 1875815999628000608}
-  - component: {fileID: 2378648319316510352}
   - component: {fileID: 7874158453357262993}
   - component: {fileID: 6451714079978233378}
+  - component: {fileID: 7175855429750057518}
   m_Layer: 14
   m_Name: hMovingPlatform
   m_TagString: Platform
@@ -161,23 +161,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 0.9872093, y: 0.24095297}
   m_EdgeRadius: 0
---- !u!114 &2378648319316510352
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2077545451685543693}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4f3340de726848818d13952eb155f2d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _isMoving: 0
-  _isHorizontal: 1
-  _isVertical: 0
-  _speed: 10
-  _pauseTime: 4
 --- !u!82 &7874158453357262993
 AudioSource:
   m_ObjectHideFlags: 0
@@ -304,3 +287,20 @@ MonoBehaviour:
   platformLayer:
     serializedVersion: 2
     m_Bits: 16384
+--- !u!114 &7175855429750057518
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2077545451685543693}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4f3340de726848818d13952eb155f2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _isMoving: 0
+  _isHorizontal: 1
+  _isVertical: 0
+  _speed: 10
+  _pauseTime: 4

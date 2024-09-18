@@ -22,9 +22,9 @@ public class SpawnPoint : MonoBehaviour
         else _spawnPoint = transform;
     }
 
-    void Update()
+    public void UpdateSpawn()
     {
-        if(SceneManager.GetActiveScene() != SceneManager.GetSceneByBuildIndex(0) && _spawnPoint == transform)
+        if(SceneManager.GetActiveScene() != SceneManager.GetSceneByBuildIndex(0))
         {
             _spawnPoint = GameObject.FindGameObjectWithTag("SpawnPoint").transform;
         }

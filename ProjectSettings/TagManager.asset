@@ -17,6 +17,8 @@ TagManager:
   - StateMachine
   - UIMenus
   - SpawnPoint
+  - PreasurePlate
+  - TriggerPlatform
   layers:
   - Default
   - TransparentFX
@@ -62,6 +64,9 @@ TagManager:
     locked: 0
   - name: Ground0
     uniqueID: 4056301229
+    locked: 0
+  - name: Environment
+    uniqueID: 3256192485
     locked: 0
   - name: Player
     uniqueID: 1197651223

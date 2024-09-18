@@ -29,6 +29,7 @@ public class Pushable : MonoBehaviour
     {
         topCheck();
         groundCheck();
+        plateCheck();
 
         push();
         fallCheck();
@@ -51,11 +52,11 @@ public class Pushable : MonoBehaviour
 
     private void topCheck()
     {
-        onTop = Physics2D.OverlapCircleAll(_topCheck.position, 0.36f, _levelManager.playerLayer).Length > 0 ? true : false;
+        onTop = Physics2D.OverlapCircle(_topCheck.position, 0.36f, _levelManager.playerLayer);
     }
      private void groundCheck()
     {
-        isGrounded = Physics2D.OverlapCircleAll(_groundCheck.position, 0.3f, _levelManager.groundLayer).Length > 0 ? true : false;
+        isGrounded = Physics2D.OverlapCircle(_groundCheck.position, 0.3f, _levelManager.groundLayer);
     }
     private void fallCheck()
     {
@@ -73,6 +74,17 @@ public class Pushable : MonoBehaviour
             isFalling = false;
         }
     }
+    private void plateCheck()
+    {
+        Collider2D collider = Physics2D.OverlapCircle(_rigidbody.position, 0.5f, _levelManager.interactableLayer);
+       if (collider != null)
+       {
+            if(collider.CompareTag("PreasurePlate"))
+            {
+               transform.position = new Vector2(transform.position.x, transform.position.y + 2f);
+            }
+       }
+    }
     private void push()
     {   
             if(onTop == true)
@@ -83,32 +95,31 @@ public class Pushable : MonoBehaviour
             if
             (
                 (
-                Physics2D.OverlapCircleAll(_rightCheck.position, 0.4f, _levelManager.playerLayer).Length > 0
+                Physics2D.OverlapCircle(_rightCheck.position, 0.4f, _levelManager.playerLayer)
                 ||
-                Physics2D.OverlapCircleAll(_leftCheck.position, 0.4f, _levelManager.playerLayer).Length > 0
+                Physics2D.OverlapCircle(_leftCheck.position, 0.4f, _levelManager.playerLayer)
                 )
                 &&
                 (
-                Physics2D.OverlapCircleAll(_rightCheck.position, 0.35f, _levelManager.groundLayer).Length > 0
+                Physics2D.OverlapCircle(_rightCheck.position, 0.35f, _levelManager.groundLayer)
                 ||
-                Physics2D.OverlapCircleAll(_leftCheck.position, 0.35f, _levelManager.groundLayer).Length > 0
+                Physics2D.OverlapCircle(_leftCheck.position, 0.35f, _levelManager.groundLayer)
                 )
                 &&
-                _rigidbody.velocity.x != 0f 
+                Mathf.Abs(_rigidbody.velocity.x) > 0.01f
                 && hasPlayed == false
                 && isFalling == false
             )
             {
                
                 _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[5]._sound);
-                hasPlayed = true;
-                _rigidbody.velocity = Vector2.zero;    
+                hasPlayed = true;  
             }
             else if 
             (
-                Physics2D.OverlapCircleAll(_leftCheck.position, radius , _levelManager.playerLayer).Length > 0
+                Physics2D.OverlapCircle(_leftCheck.position, radius , _levelManager.playerLayer)
                 &&
-                Physics2D.OverlapCircleAll(_rightCheck.position, radius, _levelManager.groundLayer).Length <= 0
+                Physics2D.OverlapCircle(_rightCheck.position, radius, _levelManager.groundLayer)
             )
             {
                 _rigidbody.velocity = Vector2.SmoothDamp
@@ -122,9 +133,9 @@ public class Pushable : MonoBehaviour
             } 
             else if 
             (
-                Physics2D.OverlapCircleAll(_rightCheck.position, radius, _levelManager.playerLayer).Length > 0
+                Physics2D.OverlapCircle(_rightCheck.position, radius, _levelManager.playerLayer)
                 &&
-                Physics2D.OverlapCircleAll(_leftCheck.position, radius, _levelManager.groundLayer).Length <= 0
+                Physics2D.OverlapCircle(_leftCheck.position, radius, _levelManager.groundLayer)
                 
             )
             {

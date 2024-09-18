@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
 
 public class PauseMenu : MonoBehaviour
@@ -13,7 +12,9 @@ public class PauseMenu : MonoBehaviour
     private Button _settingsPM;
     private Button _mainMenuPM;
 
-    public bool _cont = false, _openSettings = false, _mainMenu = false;
+    public bool isContinue = false;
+    public bool isOpenSettings = false;
+    public bool isMainMenu = false;
 
     private void Awake()
     {
@@ -22,93 +23,56 @@ public class PauseMenu : MonoBehaviour
         _bgPause = _pauseMenu.rootVisualElement.Q("bgPause");
         _continue = _pauseMenu.rootVisualElement.Q("btnContinue") as Button;
         _settingsPM = _pauseMenu.rootVisualElement.Q("btnSettingsPM") as Button;
-        _mainMenuPM = _pauseMenu.rootVisualElement.Q("btnMenuPM")  as Button;
+        _mainMenuPM = _pauseMenu.rootVisualElement.Q("btnMenuPM") as Button;
+
+        if (_continue == null || _settingsPM == null || _mainMenuPM == null)
+        {
+            Debug.LogError("PauseMenu: One or more buttons are missing in the UI.");
+        }
     }
     #endregion Initialization
+
     void Start()
     {
-        initCallbacks();
-        isDisabled();
+        InitCallbacks();
+        SetMenuVisibility(false);
     }
-    void OnEnable()
+
+    private void InitCallbacks()
     {
-        initCallbacks();
+        RegisterButtonCallbacks(_continue, () => isContinue = true);
+        RegisterButtonCallbacks(_settingsPM, () => isOpenSettings = true);
+        RegisterButtonCallbacks(_mainMenuPM, () => isMainMenu = true);
     }
-    public void initCallbacks()
+
+    private void RegisterButtonCallbacks(Button button, System.Action onSubmitAction)
     {
-        // add PointerLeaveEvent, PointerOverEvent, NavigationMoveEvent for each.
-            // continue
-            _continue.RegisterCallback<ClickEvent>((evt) => 
-            { 
-                _cont = true;
-            });
-            _continue.RegisterCallback<PointerEnterEvent>((evt) => 
-            { 
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
-                _continue.Focus();
-            });
-            _continue.RegisterCallback<NavigationSubmitEvent>((evt) => 
-            { 
-                _cont = true;
-            });
-            _continue.RegisterCallback<NavigationMoveEvent>((evt) => 
-            { 
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
-            });
-            _settingsPM.RegisterCallback<ClickEvent>((evt) => 
-            { 
-                _openSettings = true;
-            });
-            _settingsPM.RegisterCallback<NavigationSubmitEvent>((evt) => 
-            { 
-                _openSettings = true;
-            });
-            _settingsPM.RegisterCallback<NavigationMoveEvent>((evt) => 
-            { 
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
-            });
-            _settingsPM.RegisterCallback<PointerEnterEvent>((evt) => 
-            { 
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
-                _settingsPM.Focus();
-            });
-            // main menu
-            _mainMenuPM.RegisterCallback<ClickEvent>((evt) => 
-            { 
-                _mainMenu = true;
-            });
-            _mainMenuPM.RegisterCallback<NavigationSubmitEvent>((evt) => 
-            { 
-                _mainMenu = true;
-            });
-            _mainMenuPM.RegisterCallback<PointerEnterEvent>((evt) => 
-            { 
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
-                _mainMenuPM.Focus();
-            });
-            _mainMenuPM.RegisterCallback<NavigationMoveEvent>((evt) => 
-            { 
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
-            });
-    }
-    public void isEnabled()
-    {
-       // _pauseMenu.enabled = true;
-       // this.gameObject.SetActive(true);
-        _pauseMenu.rootVisualElement.style.visibility = Visibility.Visible;
-        _continue.Focus();
-        //initCallbacks();
-        _cont = false;
-        _openSettings = false;
-        _mainMenu = false;
-    }
-    public void isDisabled()
-    {
-        if(_pauseMenu.isActiveAndEnabled)
+        var sound = AudioManager._instance._sfxUI[6]._sound;
+
+        button.RegisterCallback<ClickEvent>((evt) => onSubmitAction());
+        button.RegisterCallback<NavigationSubmitEvent>((evt) => onSubmitAction());
+        button.RegisterCallback<PointerEnterEvent>((evt) =>
         {
-            _pauseMenu.rootVisualElement.style.visibility = Visibility.Hidden;
-            //_pauseMenu.enabled = false;
-            //this.gameObject.SetActive(false);
+            _audioSource.PlayOneShot(sound);
+            button.Focus();
+        });
+        button.RegisterCallback<NavigationMoveEvent>((evt) => _audioSource.PlayOneShot(sound));
+    }
+
+    public void SetMenuVisibility(bool isVisible)
+    {
+        _pauseMenu.rootVisualElement.style.visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
+
+        if (isVisible)
+        {
+            _continue.Focus();
+            isContinue = false;
+            isOpenSettings = false;
+            isMainMenu = false;
         }
+    }
+    public bool IsVisible()
+    {
+        return _pauseMenu.rootVisualElement.style.visibility == Visibility.Visible;
     }
 }

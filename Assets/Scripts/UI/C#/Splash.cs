@@ -1,33 +1,42 @@
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using DataStorage;
 using UnityEngine.UIElements;
-
 
 public class Splash : MonoBehaviour
 {
-    public UIDocument _splash;
+    public UIDocument _splashScreen;
     private static PlayerControl _playerControl;
-    private TableEntry _playerLevel;
-    private float _level;
+
 
     private void Awake()
     {
-        _playerControl = GameObject.Find("Player").GetComponent<PlayerControl>();
-        _playerLevel = new TableEntry
-        (
-            "Level",
-            "INT",
-            1
-        );
+        _splashScreen = GetComponent<UIDocument>();
+        _playerControl = GameObject.Find("Player")?.GetComponent<PlayerControl>();
+
     }
-    private void Start()
+    void Start()
     {
-       _level = _playerControl.loadPlayerValue(_playerLevel)._floatValue;
+        if (_playerControl == null)
+        {
+            Debug.LogError("Splash: PlayerControl not found.");
+        }
+        AudioManager._instance.playMusic("shrine");
     }
-    public void startGame(){
-        _splash.rootVisualElement.style.visibility = Visibility.Hidden;
-        SceneManager.LoadScene((int)_level == 0? 1 : (int)_level); 
+
+    public void StartGame()
+    {
+        int targetLevel = _playerControl._level == 0 ? 1 : _playerControl._level;
+        SceneManager.LoadScene(targetLevel);
+        SetMenuVisibility(false);
+    }
+    public void SetMenuVisibility(bool isVisible)
+    {
+        _splashScreen.rootVisualElement.style.visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
+    }
+    public bool IsVisible()
+    {
+        return _splashScreen.rootVisualElement.style.visibility == Visibility.Visible;
     }
 
 }

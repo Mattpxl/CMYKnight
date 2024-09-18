@@ -8,7 +8,8 @@ public class EndScreen : MonoBehaviour
     private Button _restart;
     private Button _quit;
 
-    public bool quit, restart = false;
+    public bool isQuit = false;
+    public bool isRestart = false;
 
     void Awake()
     {
@@ -16,70 +17,51 @@ public class EndScreen : MonoBehaviour
         _audioSource = GetComponent<AudioSource>();
         _restart = _endscreen.rootVisualElement.Q("btnRestart") as Button;
         _quit = _endscreen.rootVisualElement.Q("btnQuit") as Button;
-    }
-    void Start()
-    {
-        isDisabled();
-        initCallbacks();
-    }
-    void OnEnable()
-    {
-        initCallbacks();
+
+        if (_restart == null || _quit == null)
+        {
+            Debug.LogError("EndScreen: One or both buttons are missing in the UI.");
+        }
     }
 
-    public void initCallbacks()
+    void Start()
     {
-       _quit.RegisterCallback<ClickEvent>((evt) => 
-        { 
-            quit = true;
-        });
-        _quit.RegisterCallback<NavigationSubmitEvent>((evt) => 
-        { 
-            quit = true;
-        });
-        _quit.RegisterCallback<NavigationMoveEvent>((evt) => 
-        { 
-            _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
-        });
-        _quit.RegisterCallback<PointerEnterEvent>((evt) => 
-        { 
-            _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
-            _quit.Focus();
-        });
-        _restart.RegisterCallback<ClickEvent>((evt) => 
-        { 
-            restart = true;
-        });
-        _restart.RegisterCallback<NavigationSubmitEvent>((evt) => 
-        { 
-            restart = true;
-        });
-        _restart.RegisterCallback<NavigationMoveEvent>((evt) => 
-        { 
-            _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
-        });
-        _restart.RegisterCallback<PointerEnterEvent>((evt) => 
-        { 
-            _audioSource.PlayOneShot(AudioManager._instance._sfxUI[6]._sound);
-            _restart.Focus();
-        });
+        SetMenuVisibility(false);
+        InitCallbacks();
     }
-    public void isEnabled()
+
+    private void InitCallbacks()
     {
-       //_endscreen.enabled = true;
-       //this.gameObject.SetActive(true);
-        _endscreen.rootVisualElement.style.visibility = Visibility.Visible;
-        //initCallbacks();
-        quit = false;
-        restart = false;
+        RegisterButtonCallbacks(_quit, () => isQuit = true);
+        RegisterButtonCallbacks(_restart, () => isRestart = true);
     }
-    public void isDisabled()
+
+    private void RegisterButtonCallbacks(Button button, System.Action onSubmitAction)
     {
-        if(_endscreen.isActiveAndEnabled)
+        var sound = AudioManager._instance._sfxUI[6]._sound;
+
+        button.RegisterCallback<ClickEvent>((evt) => onSubmitAction());
+        button.RegisterCallback<NavigationSubmitEvent>((evt) => onSubmitAction());
+        button.RegisterCallback<NavigationMoveEvent>((evt) => _audioSource.PlayOneShot(sound));
+        button.RegisterCallback<PointerEnterEvent>((evt) =>
         {
-        _endscreen.rootVisualElement.style.visibility = Visibility.Hidden;
-       // _endscreen.enabled = false;
-       // this.gameObject.SetActive(false);
+            _audioSource.PlayOneShot(sound);
+            button.Focus();
+        });
+    }
+
+    public void SetMenuVisibility(bool isVisible)
+    {
+        _endscreen.rootVisualElement.style.visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
+
+        if (isVisible)
+        {
+            isQuit = false;
+            isRestart = false;
         }
+    }
+    public bool IsVisible()
+    {
+        return _endscreen.rootVisualElement.style.visibility == Visibility.Visible;
     }
 }

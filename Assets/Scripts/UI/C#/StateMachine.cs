@@ -13,6 +13,7 @@ public class StateMachine : MonoBehaviour
     [SerializeField] private ConfirmationMenu _confirmationMenu;
     [SerializeField] private EndScreen _endscreen;
     [SerializeField] private Splash _splashScreen;
+    
     private bool _isPaused;
     private AudioSource _audioSource;
 
@@ -25,196 +26,416 @@ public class StateMachine : MonoBehaviour
     {
         _isPaused = _playerControl._isPaused;
         AudioManager._instance._musicSource.loop = true;
-        AudioManager._instance.playMusic("menu0");
+        AudioManager._instance._sfxSource.loop = true;
     }
-
     #endregion Initialization
 
     private void Update()
     {
-        //splash screen
-        if(SceneManager.GetActiveScene() == SceneManager.GetSceneByBuildIndex(0))
+        //HandleSplashScreen();
+        //HandleSettingsMenu();
+        //HandleConfirmationMenu();
+        //HandleMainMenu();
+        //HandleEndScreen();
+        //HandlePauseMenu();
+        //UpdateRuntimeUI();
+         if (SceneManager.GetActiveScene().buildIndex == 0)
         {
-            if(_playerControl._startGame == true)
-        {
-            _splashScreen.startGame();
-            _playerControl._startGame = false;
-            _mainMenu._mainMenu.rootVisualElement.style.visibility = Visibility.Visible;
-        }
-        else
-        {
-            _splashScreen._splash.rootVisualElement.style.visibility = Visibility.Visible;
-            _settingsMenu.isDisabled();
-            _mainMenu.isDisabled();
-            _confirmationMenu.isDisabled();
-            _endscreen.isDisabled();
-            _pauseMenu.isDisabled();
-        }
-        }
-        // Setting Menu
-        else if(_settingsMenu._settingsMenu.rootVisualElement.style.visibility == Visibility.Visible)
-        {
-            
-            if(_settingsMenu.quit == true)
+            _mainMenu.SetMenuVisibility(false);
+
+            if (_playerControl._startGame)
             {
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[3]._sound);
-                _mainMenu._openSettings = false;
-                _pauseMenu._openSettings = false;
-                _settingsMenu.isDisabled();
-            }
-          }
-          // Confirmation menu
-          else if (_confirmationMenu._confirmationMenu.rootVisualElement.style.visibility == Visibility.Visible)
-          {
-            if(_confirmationMenu.yes == true)
-            {
-                _splashScreen._splash.rootVisualElement.style.visibility = Visibility.Visible;
-                AudioManager._instance._musicSource.Stop();
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[5]._sound);
                 AudioManager._instance.playMusic("menu0");
-                _mainMenu.isEnabled();
-                _isPaused = false; 
-                _playerControl._isPaused = _isPaused;
-                _confirmationMenu.isDisabled();
-                _pauseMenu.isDisabled();
-                _endscreen.isDisabled();
-            }
-            if(_confirmationMenu.no == true)
-            {
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[5]._sound);
-                _confirmationMenu.isDisabled();
-            }
-          }
-          //MainMenu
-          else if (_mainMenu._mainMenu.rootVisualElement.style.visibility == Visibility.Visible)
-          {
-            _splashScreen._splash.rootVisualElement.style.visibility = Visibility.Hidden;
-            Time.timeScale = 0f;
-            AudioManager._instance._audioMixerGroup = AudioManager._instance._audioMixer.FindMatchingGroups("Master/Sounds/");
-            AudioManager._instance._audioMixerGroup[1].audioMixer.SetFloat("Player",  -80f);
-            AudioManager._instance._audioMixerGroup[2].audioMixer.SetFloat("World",  -80f);
-            AudioManager._instance._audioMixerGroup[3].audioMixer.SetFloat("Enemy",  -80f);
-            //EventSystem.current.SetSelectedGameObject(_mainMenu._start);
-            if (_mainMenu._canStart == true)
-            {
-                AudioManager._instance._musicSource.Stop();
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[4]._sound);
-                AudioManager._instance.playMusic("cavern");
-                
-                _isPaused = false; 
-                _playerControl._isPaused = _isPaused;
-                
-                _playerControl.spawn();
-                _mainMenu.isDisabled();
-                _confirmationMenu.isDisabled();
-            }
-            if(_mainMenu._openSettings == true)
-            {
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
-                _settingsMenu.isEnabled();
-            }
-            if(_mainMenu._quit == true)
-            {
-                AudioManager._instance._musicSource.Stop();
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[5]._sound);
-                SceneManager.LoadScene(0);
-                _splashScreen._splash.rootVisualElement.style.visibility = Visibility.Visible;
-            }
-          }
-          // End Screen
-          else if (_endscreen._endscreen.rootVisualElement.style.visibility == Visibility.Visible)
-          {
-            Time.timeScale = 0f;
-            if(_endscreen.quit == true)
-            {
-                _audioSource.Stop();
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
-                _confirmationMenu.isEnabled();
-            }
-            if(_endscreen.restart == true)
-            {
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
-                AudioManager._instance._musicSource.Stop();
-                AudioManager._instance.playMusic("cavern");
-                _endscreen.isDisabled();
-                
-                _isPaused = false; 
-                _playerControl._isPaused = _isPaused;
-                
-                _playerControl.respawn();
-            }
-          }
-        // PauseMenu
-        else if (_pauseMenu._pauseMenu.rootVisualElement.style.visibility == Visibility.Visible)
-        {
-            if(_pauseMenu._cont == true || _playerControl._isPaused == false)
-            {
-                AudioManager._instance._musicSource.Stop();
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[1]._sound);
-                AudioManager._instance.playMusic("cavern");
-                
-                _isPaused = false; 
-                _playerControl._isPaused = _isPaused;
-                _pauseMenu.isDisabled(); 
-                
-            }
-            if(_pauseMenu._openSettings == true)
-            {
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
-                _settingsMenu.isEnabled();
-            }
-            if(_pauseMenu._mainMenu == true)
-            {
-                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
-                _confirmationMenu.isEnabled();
-            }
-        }
-        // runtime UI Values
-        else 
-        {
-            _runtimeUI._heartLabel.label = "x" + _playerControl._lives;
-            if(_playerControl._keys == 0)
-            {
-            _runtimeUI._key.style.visibility = Visibility.Hidden;
-            _runtimeUI._keyLabel.style.visibility = Visibility.Hidden;
-            }
-            else 
-            {
-            _runtimeUI._key.style.visibility = Visibility.Visible;
-            _runtimeUI._keyLabel.style.visibility = Visibility.Visible;
-            _runtimeUI._keyLabel.label = "x" + _playerControl._keys;
-            }
-            if (_playerControl._isDead == true) 
-            {
-                _endscreen.isEnabled();
+                _splashScreen.StartGame();
+                //_splashScreen.SetMenuVisibility(false);
+                //_playerControl._startGame = false;
+                _mainMenu.SetMenuVisibility(true);
             }
             else
             {
-                _endscreen.isDisabled();
-            } 
-            _isPaused = _playerControl._isPaused;
-            if(_isPaused == true)
-            {
-                Time.timeScale = 0f;
-                _pauseMenu.isEnabled();
-                AudioManager._instance._audioMixerGroup = AudioManager._instance._audioMixer.FindMatchingGroups("Master/Sounds/");
-                AudioManager._instance._audioMixerGroup[1].audioMixer.SetFloat("Player",  -80f);
-                AudioManager._instance._audioMixerGroup[2].audioMixer.SetFloat("World",  -80f);
-                AudioManager._instance._audioMixerGroup[3].audioMixer.SetFloat("Enemy",  -80f);
+                _settingsMenu.SetMenuVisibility(false);
+                _mainMenu.SetMenuVisibility(false);
+                _confirmationMenu.SetMenuVisibility(false);
+                _endscreen.SetMenuVisibility(false);
+                _pauseMenu.SetMenuVisibility(false);
             }
-            if(_isPaused == false)
-            {
-                Time.timeScale = 1f;
-                _pauseMenu.isDisabled();         
-                AudioManager._instance._audioMixerGroup = AudioManager._instance._audioMixer.FindMatchingGroups("Master/Sounds/");
-                AudioManager._instance._audioMixerGroup[1].audioMixer.SetFloat("Player", 0f);
-                AudioManager._instance._audioMixerGroup[2].audioMixer.SetFloat("World",  0f);
-                AudioManager._instance._audioMixerGroup[3].audioMixer.SetFloat("Enemy",  -5f);
-            }  
-
         }
-           
+        else if (_settingsMenu.IsVisible())
+        {
+            if (_settingsMenu.isQuit)
+            {
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[3]._sound);
+                _mainMenu.isOpenSettings = false;
+                _pauseMenu.isOpenSettings = false;
+                _settingsMenu.SetMenuVisibility(false);
+            }
+        }
+        else if (_confirmationMenu.IsVisible())
+        {
+            if (_confirmationMenu.isConfirmedYes)
+            {
+                AudioManager._instance._musicSource.Stop();
+                AudioManager._instance._sfxSource.Stop();
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[5]._sound);
+                AudioManager._instance.playMusic("menu0");
+                _mainMenu.SetMenuVisibility(true);
+                _settingsMenu.SaveSettingsValues();
+                _playerControl.SavePlayerData();
+                _playerControl._resetLevel = true;
+                _isPaused = false;
+                _playerControl._isPaused = _isPaused;
+                _confirmationMenu.SetMenuVisibility(false);
+                _pauseMenu.SetMenuVisibility(false);
+                _endscreen.SetMenuVisibility(false);
+                _splashScreen.SetMenuVisibility(true);
+            }
 
+            if (_confirmationMenu.isConfirmedNo)
+            {
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[5]._sound);
+                _pauseMenu.isMainMenu = false;
+                _endscreen.isQuit = false;
+                _confirmationMenu.SetMenuVisibility(false);
+            }
+        } 
+        else if (_mainMenu.IsVisible())
+        {
+            _splashScreen.SetMenuVisibility(false);
+            Time.timeScale = 0f;
+            AudioManager._instance.SetAudioMixerLevels("Player", "World", "Enemy", -80f);
+
+            if (_mainMenu.isCanStart)
+            {
+                AudioManager._instance._musicSource.Stop();
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[4]._sound);
+                AudioManager._instance.playSfx("dungeon");
+                AudioManager._instance.playMusic("cavern");
+
+                _isPaused = false;
+                _playerControl._isPaused = _isPaused;
+                if(_playerControl._isDead) _playerControl.respawn(true);
+                else _playerControl.respawn();
+                _mainMenu.SetMenuVisibility(false);
+                _confirmationMenu.SetMenuVisibility(false);
+            }
+
+            else if (_mainMenu.isOpenSettings)
+            {
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
+                _settingsMenu.SetMenuVisibility(true);
+            }
+
+            else if (_mainMenu.isQuit)
+            {
+                AudioManager._instance._musicSource.Stop();
+                AudioManager._instance._sfxSource.Stop();
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[5]._sound);
+                //AudioManager._instance.playMusic("shrine");
+                SceneManager.LoadScene(0);
+                _playerControl._startGame = false;
+                _splashScreen.SetMenuVisibility(true);
+            }
+        }
+        else if (_endscreen.IsVisible())
+        {
+            Time.timeScale = 0f;
+
+            if (_endscreen.isQuit)
+            {
+                _audioSource.Stop();
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
+                _confirmationMenu.SetMenuVisibility(true);
+            }
+
+            else if (_endscreen.isRestart)
+            {
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
+                AudioManager._instance._musicSource.Stop();
+                AudioManager._instance._sfxSource.Stop();
+                AudioManager._instance.playMusic("cavern");
+                AudioManager._instance.playSfx("dungeon");
+
+                _endscreen.SetMenuVisibility(false);
+                _isPaused = false;
+                _playerControl._isPaused = _isPaused;
+                _playerControl.respawn(true);
+            }
+        }
+        else if (_pauseMenu.IsVisible())
+        {
+            if (_pauseMenu.isContinue || !_playerControl._isPaused)
+            {
+                AudioManager._instance._musicSource.Stop();
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[1]._sound);
+                AudioManager._instance.playSfx("dungeon");
+                AudioManager._instance.playMusic("cavern");
+
+                _isPaused = false;
+                _playerControl._isPaused = _isPaused;
+                _pauseMenu.SetMenuVisibility(false);
+            }
+
+            else if (_pauseMenu.isOpenSettings)
+            {
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
+                _settingsMenu.SetMenuVisibility(true);
+            }
+
+            else if (_pauseMenu.isMainMenu)
+            {
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
+                _confirmationMenu.SetMenuVisibility(true);
+            }
+        }
+        else 
+        {
+        _runtimeUI.HeartLabel.label = "x" + _playerControl._lives;
+
+        if (_playerControl._keys == 0)
+        {
+            _runtimeUI.Key.style.visibility = Visibility.Hidden;
+            _runtimeUI.KeyLabel.style.visibility = Visibility.Hidden;
+        }
+        else
+        {
+            _runtimeUI.Key.style.visibility = Visibility.Visible;
+            _runtimeUI.KeyLabel.style.visibility = Visibility.Visible;
+            _runtimeUI.KeyLabel.label = "x" + _playerControl._keys;
+        }
+
+        if (_playerControl._isDead)
+        {
+            _endscreen.SetMenuVisibility(true);
+        }
+        else
+        {
+            _endscreen.SetMenuVisibility(false);
+        }
+
+        _isPaused = _playerControl._isPaused;
+
+        if (_isPaused)
+        {
+            Time.timeScale = 0f;
+            AudioManager._instance._sfxSource.Stop();
+            _pauseMenu.SetMenuVisibility(true);
+            AudioManager._instance.SetAudioMixerLevels("Player", "World", "Enemy", -80f);
+        }
+        else
+        {
+            Time.timeScale = 1f;
+            AudioManager._instance.playSfx("dungeon");
+            _pauseMenu.SetMenuVisibility(false);
+            AudioManager._instance.SetAudioMixerLevels("Player", "World", "Enemy", -20f);
+        }
+        }
     }
 
+    private void HandleSplashScreen()
+    {
+        if (SceneManager.GetActiveScene().buildIndex == 0)
+        {
+            AudioManager._instance.playMusic("shrine");
+
+            if (_playerControl._startGame)
+            {
+                _splashScreen.StartGame();
+                _playerControl._startGame = false;
+                _mainMenu.SetMenuVisibility(true);
+            }
+            else
+            {
+                _settingsMenu.SetMenuVisibility(false);
+                _mainMenu.SetMenuVisibility(false);
+                _confirmationMenu.SetMenuVisibility(false);
+                _endscreen.SetMenuVisibility(false);
+                _pauseMenu.SetMenuVisibility(false);
+            }
+        }
+    }
+
+    private void HandleSettingsMenu()
+    {
+        if (_settingsMenu.IsVisible())
+        {
+            if (_settingsMenu.isQuit)
+            {
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[3]._sound);
+                _mainMenu.isOpenSettings = false;
+                _pauseMenu.isOpenSettings = false;
+                _settingsMenu.SetMenuVisibility(false);
+            }
+        }
+    }
+
+    private void HandleConfirmationMenu()
+    {
+        if (_confirmationMenu.IsVisible())
+        {
+            if (_confirmationMenu.isConfirmedYes)
+            {
+                _splashScreen.SetMenuVisibility(true);
+                AudioManager._instance._musicSource.Stop();
+                AudioManager._instance._sfxSource.Stop();
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[5]._sound);
+                AudioManager._instance.playMusic("menu0");
+                _mainMenu.SetMenuVisibility(true);
+                _playerControl._resetLevel = true;
+                _isPaused = false;
+                _playerControl._isPaused = _isPaused;
+                _confirmationMenu.SetMenuVisibility(false);
+                _pauseMenu.SetMenuVisibility(false);
+                _endscreen.SetMenuVisibility(false);
+            }
+
+            if (_confirmationMenu.isConfirmedNo)
+            {
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[5]._sound);
+                _confirmationMenu.SetMenuVisibility(false);
+            }
+        }
+    }
+
+    private void HandleMainMenu()
+    {
+        if (_mainMenu.IsVisible())
+        {
+            _splashScreen.SetMenuVisibility(false);
+            Time.timeScale = 0f;
+
+            AudioManager._instance.SetAudioMixerLevels("Player", "World", "Enemy", -80f);
+
+            if (_mainMenu.isCanStart)
+            {
+                AudioManager._instance._musicSource.Stop();
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[4]._sound);
+                AudioManager._instance.playSfx("dungeon");
+                AudioManager._instance.playMusic("cavern");
+
+                _isPaused = false;
+                _playerControl._isPaused = _isPaused;
+
+                _playerControl.respawn();
+                _mainMenu.SetMenuVisibility(false);
+                _confirmationMenu.SetMenuVisibility(false);
+            }
+
+            if (_mainMenu.isOpenSettings)
+            {
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
+                _settingsMenu.SetMenuVisibility(true);
+            }
+
+            if (_mainMenu.isQuit)
+            {
+                AudioManager._instance._musicSource.Stop();
+                AudioManager._instance._sfxSource.Stop();
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[5]._sound);
+                SceneManager.LoadScene(0);
+                _splashScreen.SetMenuVisibility(true);
+            }
+        }
+    }
+
+    private void HandleEndScreen()
+    {
+        if (_endscreen.IsVisible())
+        {
+            Time.timeScale = 0f;
+
+            if (_endscreen.isQuit)
+            {
+                _audioSource.Stop();
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
+                _confirmationMenu.SetMenuVisibility(true);
+            }
+
+            if (_endscreen.isRestart)
+            {
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
+                AudioManager._instance._musicSource.Stop();
+                AudioManager._instance._sfxSource.Stop();
+                AudioManager._instance.playMusic("cavern");
+                AudioManager._instance.playSfx("dungeon");
+
+                _endscreen.SetMenuVisibility(false);
+                _isPaused = false;
+                _playerControl._isPaused = _isPaused;
+                _playerControl.respawn(true);
+            }
+        }
+    }
+
+    private void HandlePauseMenu()
+    {
+        if (_pauseMenu.IsVisible())
+        {
+            if (_pauseMenu.isContinue || !_playerControl._isPaused)
+            {
+                AudioManager._instance._musicSource.Stop();
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[1]._sound);
+                AudioManager._instance.playSfx("dungeon");
+                AudioManager._instance.playMusic("cavern");
+
+                _isPaused = false;
+                _playerControl._isPaused = _isPaused;
+                _pauseMenu.SetMenuVisibility(false);
+            }
+
+            if (_pauseMenu.isOpenSettings)
+            {
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
+                _settingsMenu.SetMenuVisibility(true);
+            }
+
+            if (_pauseMenu.isMainMenu)
+            {
+                _audioSource.PlayOneShot(AudioManager._instance._sfxUI[2]._sound);
+                _confirmationMenu.SetMenuVisibility(true);
+            }
+        }
+    }
+
+    private void UpdateRuntimeUI()
+    {
+        _runtimeUI.HeartLabel.label = "x" + _playerControl._lives;
+
+        if (_playerControl._keys == 0)
+        {
+            _runtimeUI.Key.style.visibility = Visibility.Hidden;
+            _runtimeUI.KeyLabel.style.visibility = Visibility.Hidden;
+        }
+        else
+        {
+            _runtimeUI.Key.style.visibility = Visibility.Visible;
+            _runtimeUI.KeyLabel.style.visibility = Visibility.Visible;
+            _runtimeUI.KeyLabel.label = "x" + _playerControl._keys;
+        }
+
+        if (_playerControl._isDead)
+        {
+            _endscreen.SetMenuVisibility(true);
+        }
+        else
+        {
+            _endscreen.SetMenuVisibility(false);
+        }
+
+        _isPaused = _playerControl._isPaused;
+
+        if (_isPaused)
+        {
+            Time.timeScale = 0f;
+            AudioManager._instance._sfxSource.Stop();
+            _pauseMenu.SetMenuVisibility(true);
+            AudioManager._instance.SetAudioMixerLevels("Player", "World", "Enemy", -80f);
+        }
+        else
+        {
+            Time.timeScale = 1f;
+            AudioManager._instance.playSfx("dungeon");
+            _pauseMenu.SetMenuVisibility(false);
+            AudioManager._instance.SetAudioMixerLevels("Player", "World", "Enemy", -20f);
+        }
+    }
 }

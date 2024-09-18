@@ -70,6 +70,20 @@ AudioMixerEffectController:
   m_SendTarget: {fileID: 0}
   m_EnableWetMix: 0
   m_Bypass: 0
+--- !u!244 &-262744470580401941
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: 7e784b9e109c946e0ac3d0607f217e6d
+  m_EffectName: Attenuation
+  m_MixLevel: 48901a40435ae49c6a5f07b515d34237
+  m_Parameters: []
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
 --- !u!241 &24100000
 AudioMixerController:
   m_ObjectHideFlags: 0
@@ -109,6 +123,8 @@ AudioMixerController:
     - dc008feeb66e546678cd574468f6d990
     - 583acf5586f4541599a620324bab38df
     - c840bd5c54ffd432c8184ab3de2bee35
+    - a00608eebe0594bfa8891a0906c2a84a
+    - 4895f3ecd1ded44eea3d67bc9460dfd8
     name: View
   m_CurrentViewIndex: 0
   m_TargetSnapshot: {fileID: 24500006}
@@ -159,7 +175,7 @@ AudioMixerSnapshotController:
   m_FloatValues:
     e7432730ff31a4f418c680aed25c8659: -80
     b8c8dca0038e7414e8a1a7133f663497: -4.560346
-    39d9cf71bfde6404481cd79efc1eed83: -0.02577656
+    39d9cf71bfde6404481cd79efc1eed83: -19.928473
     a347bdb15e2f64b3289c52dbf04b4229: 9.925883
     e4b5e822ccdd749899d5f65e17f6a3eb: -20.09816
     ff3de3b512ec4467a92ccb192f457e7f: -10.4748535
@@ -170,14 +186,68 @@ AudioMixerSnapshotController:
     28fd5449306d848d1b37a3efdfcab66d: -80
     659db72ac16ab4aeebbb631e488a8fbf: -20.09816
     4085199a1229c4fbca6e5d2f641902eb: 0.10800299
-    713bfaaa19dc54f6d9f1284ce988ef3a: -4.5603504
-    a0cc722bee83043019ae7fa6aa792e41: -0.27209902
-    b492cb9b7fab34c97a36796c4f20654d: 4.6480947
+    713bfaaa19dc54f6d9f1284ce988ef3a: -19.928482
+    3cbc8fba2b45f4de8b574c5e080c9950: -39.703533
+    a0cc722bee83043019ae7fa6aa792e41: -19.928473
+    b492cb9b7fab34c97a36796c4f20654d: -19.928473
     9d80bf4c0fb5144c3996cedee5467aac: -80
     8a0455ae20eb54a4785db62f0b13c352: -20.09816
     9728593f8313d47a2a420d4018dc2965: -10.4748535
     b78faf4f9ba464cfcbb6e61b24baec41: 0.10800299
+    8a9860dff59cd42ae8a49964863cf2b8: -30.32013
   m_TransitionOverrides: {}
+--- !u!243 &518608399410130455
+AudioMixerGroupController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Track
+  m_AudioMixer: {fileID: 24100000}
+  m_GroupID: a00608eebe0594bfa8891a0906c2a84a
+  m_Children: []
+  m_Volume: 8a9860dff59cd42ae8a49964863cf2b8
+  m_Pitch: 501e60bd1044044209468e85b3455ad8
+  m_Send: 00000000000000000000000000000000
+  m_Effects:
+  - {fileID: -262744470580401941}
+  m_UserColorIndex: 0
+  m_Mute: 0
+  m_Solo: 0
+  m_BypassEffects: 0
+--- !u!243 &956661819820782371
+AudioMixerGroupController:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Ambience
+  m_AudioMixer: {fileID: 24100000}
+  m_GroupID: 4895f3ecd1ded44eea3d67bc9460dfd8
+  m_Children: []
+  m_Volume: 3cbc8fba2b45f4de8b574c5e080c9950
+  m_Pitch: 2f7a54a2357194e4ba3f60bb0dae6414
+  m_Send: 00000000000000000000000000000000
+  m_Effects:
+  - {fileID: 1298280110233819634}
+  m_UserColorIndex: 0
+  m_Mute: 0
+  m_Solo: 0
+  m_BypassEffects: 0
+--- !u!244 &1298280110233819634
+AudioMixerEffectController:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  m_EffectID: 27894426262b4446cacf2690e0f78a7b
+  m_EffectName: Attenuation
+  m_MixLevel: ae35af843855440dd8511deb449b2dc5
+  m_Parameters: []
+  m_SendTarget: {fileID: 0}
+  m_EnableWetMix: 0
+  m_Bypass: 0
 --- !u!243 &1764772346583031848
 AudioMixerGroupController:
   m_ObjectHideFlags: 0
@@ -206,7 +276,9 @@ AudioMixerGroupController:
   m_Name: Music
   m_AudioMixer: {fileID: 24100000}
   m_GroupID: af26ce1dba4fe479bbdfb5d410d40af4
-  m_Children: []
+  m_Children:
+  - {fileID: 518608399410130455}
+  - {fileID: 956661819820782371}
   m_Volume: 237a30c535fd54997b8f0a9dbd006aec
   m_Pitch: 3f7fea61d71394191ae8728653cc93c5
   m_Send: 00000000000000000000000000000000

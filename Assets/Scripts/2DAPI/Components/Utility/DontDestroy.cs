@@ -1,15 +1,19 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 public class DontDestroy : MonoBehaviour
 {
-    private void Awake()
-    {
-        GameObject[] objs = GameObject.FindGameObjectsWithTag(this.gameObject.tag);
+    public static DontDestroy _instance;
 
-        if (objs.Length > 1)
+    void Awake()
+    {
+        if (_instance == null)
         {
-            Destroy(this.gameObject);
+            _instance = this;
+            DontDestroyOnLoad(gameObject); 
         }
-        
-        DontDestroyOnLoad(this.gameObject);
+        else
+        {
+            Destroy(gameObject); // Destroy duplicate GameController objects
+        }
     }
 }

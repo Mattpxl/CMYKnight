@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Respawn : MonoBehaviour
@@ -15,7 +13,7 @@ public class Respawn : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(_player._isDead)
+        if(_player._resetLevel == true)
         {
             transform.position = _origin;
         }

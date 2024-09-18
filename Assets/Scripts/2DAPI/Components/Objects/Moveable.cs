@@ -35,7 +35,6 @@ public class Moveable : MonoBehaviour
 
     void Start()
     {
-        _audioSource.Stop();
         Physics2D.IgnoreLayerCollision(10,10,true);
         Physics2D.IgnoreLayerCollision(14,14,true);
         Physics2D.IgnoreLayerCollision(10,14,true);
@@ -52,7 +51,7 @@ public class Moveable : MonoBehaviour
             _isGrounded == true &&
             (_rigidbody.velocity.x != 0 || _rigidbody.velocity.y != 0)
             ) 
-            if(this.gameObject.tag == "Platform")
+            if(this.gameObject.CompareTag("Platform"))
             {
                 if(_canCollideSound == true)
                 {
@@ -135,7 +134,7 @@ public class Moveable : MonoBehaviour
 
     #region Collisons
 
-   // [Header("Collisions")]
+    [Header("Collisions")]
     private bool _flip = true;
     private bool _isGrounded = false;
 
@@ -156,7 +155,6 @@ public class Moveable : MonoBehaviour
                 _yDirection *= -1;
             }
             StartCoroutine(pauseTime());
-            
         } 
     }
 
