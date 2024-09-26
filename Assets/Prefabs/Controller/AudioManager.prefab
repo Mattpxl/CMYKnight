@@ -368,6 +368,14 @@ MonoBehaviour:
     _sound: {fileID: 8300000, guid: 01faebec3346c41db83d55595ae7d98d, type: 3}
   - _name: key
     _sound: {fileID: 8300000, guid: 157a5d6952fb143caa40cf53467c886d, type: 3}
+  - _name: coin
+    _sound: {fileID: 8300000, guid: 7ee6696d2116a4c08a6bc8ddb19920a2, type: 3}
+  - _name: chestopen
+    _sound: {fileID: 8300000, guid: 9b054ff70fe774442b52e16f5ce9d9cb, type: 3}
+  - _name: chestcoins
+    _sound: {fileID: 8300000, guid: ea6401057b6ec47aeb8350a5b333e725, type: 3}
+  - _name: losecoins
+    _sound: {fileID: 8300000, guid: 82af4a2c7411b4ee4aad006b1c8a2a13, type: 3}
   _sfxEnvironment: []
   _music:
   - _name: cavern

@@ -19,6 +19,19 @@ TagManager:
   - SpawnPoint
   - PreasurePlate
   - TriggerPlatform
+  - Coin
+  - yChest
+  - cChest
+  - mChest
+  - Skeleton
+  - cKey
+  - mKey
+  - ykey
+  - skey
+  - mDoor
+  - cDoor
+  - bDoor
+  - Chest
   layers:
   - Default
   - TransparentFX

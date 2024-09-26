@@ -12,4 +12,6 @@ public class Hover : MonoBehaviour
     private void Update() {
       transform.position = new Vector2(_origin.x, _origin.y + amplitude * Mathf.Cos(Time.time * speed));
     }
+    
+    // disapear timer
 }

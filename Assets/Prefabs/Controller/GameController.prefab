@@ -1065,7 +1065,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_PanelSettings: {fileID: 11400000, guid: 479d9be5329fc4d7d8a93712bf21dfeb, type: 2}
   m_ParentUI: {fileID: 0}
-  sourceAsset: {fileID: 9197481963319205126, guid: b0624f1c312754fc5b35fba90541bda5, type: 3}
+  sourceAsset: {fileID: 9197481963319205126, guid: 5ea18b6a6960248e088d2a707ec98733, type: 3}
   m_SortingOrder: 0
 --- !u!114 &190019080945979362
 MonoBehaviour:
@@ -1114,7 +1114,7 @@ Transform:
   m_GameObject: {fileID: 6174578775277176299}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -0.71, y: -0.4, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1224,7 +1224,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1197651223
   m_SortingLayer: 5
-  m_SortingOrder: 0
+  m_SortingOrder: 10
   m_Sprite: {fileID: -1499054174, guid: 5c8a037e93dc14fb0a33f8a1a418398c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1453,6 +1453,7 @@ MonoBehaviour:
   _nudgeMagnitude: 1.3
   _upAssistSpeed: 0
   _upAssistMagnitude: 0
+  _isGrabbing: 0
   groundCheckObj: {fileID: 316346880643200340}
   ceilingCheckObj: {fileID: 2138592187779659895}
   leftCheckObj: {fileID: 6503139083201382970}

@@ -56,17 +56,29 @@ public class PlayerControl : MonoBehaviour
     private TableEntry _playerLevel;
     private TableEntry _playerLives;
     private TableEntry _playerKeys;
+    private TableEntry _playerKeysM;
+    private TableEntry _playerKeysC;
+    private TableEntry _playerKeysS;
+    private TableEntry _playerCoins;
     private static readonly List<string> _valueTypes = new()
             {
                 "INT",
                 "REAL", 
                 "REAL",
+                "REAL",
+                "REAL",
+                "REAL",
+                "REAL"
             };
     private static readonly List<string> _valueNames = new()
             {
                 "Level",
                 "Lives", 
                 "Keys",
+                "Coins",
+                "mKeys",
+                "cKeys",
+                "sKeys"
             };
     private static readonly ValueTable  _playerData = new ValueTable
         (
@@ -86,7 +98,11 @@ public class PlayerControl : MonoBehaviour
     {
         {"Level", new TableEntry("Level", "INT", 1)},
         {"Lives", new TableEntry("Lives", "REAL", 3)},
-        {"Keys", new TableEntry("Keys", "REAL", 0)}
+        {"Keys", new TableEntry("Keys", "REAL", 0)},
+        {"Coins", new TableEntry("Coins", "REAL", 0)},
+        {"mKeys", new TableEntry("mKeys", "REAL", 0)},
+        {"cKeys", new TableEntry("cKeys", "REAL", 0)},
+        {"sKeys", new TableEntry("sKeys", "REAL", 0)}
     };
 
     private static readonly Dictionary<string, TableEntry> _cachedPlayerValues = new();
@@ -96,11 +112,19 @@ public class PlayerControl : MonoBehaviour
         _playerLevel = new TableEntry("Level", "INT", _level);
         _playerLives = new TableEntry("Lives", "REAL", _lives);
         _playerKeys = new TableEntry ("Keys", "REAL", _keys);
+        _playerKeysM = new TableEntry ("mKeys", "REAL", _mKeys);
+        _playerKeysC = new TableEntry ("cKeys", "REAL", _cKeys);
+        _playerKeysS = new TableEntry ("sKeys", "REAL", _sKeys);
+        _playerCoins = new TableEntry ("Coins", "REAL", _coins);
         _playerDataSet = new() 
         {
             _playerLevel,
             _playerLives,
-            _playerKeys
+            _playerKeys,
+            _playerCoins,
+            _playerKeysM,
+            _playerKeysC,
+            _playerKeysS
         };
         SQLConverter.sqlConverter.generateTable(_playerData);
         loadCachePlayerValues();
@@ -137,6 +161,19 @@ public class PlayerControl : MonoBehaviour
         _lives = (float)(int)loadPlayerValue("Lives")._value;
         
         _keys = (float)(int)loadPlayerValue("Keys")._value;
+        _mKeys = (float)(int)loadPlayerValue("mKeys")._value;
+        _cKeys = (float)(int)loadPlayerValue("cKeys")._value;
+        _sKeys = (float)(int)loadPlayerValue("sKeys")._value;
+
+        _coins = (float)(int)loadPlayerValue("Coins")._value;
+
+        _keyChain = new float[]
+        {
+            _keys,
+            _mKeys,
+            _cKeys,
+            _sKeys
+        };
         
         _audioSource.Stop();
     }
@@ -166,13 +203,20 @@ public class PlayerControl : MonoBehaviour
     public int _level { get; set; } 
     public float _lives { get; set; } 
     public float _keys { get; set; } 
+    public float _cKeys { get; set; } 
+    public float _mKeys { get; set; } 
+    public float _sKeys { get; set; } 
+    public float _coins {get; set;}
     public bool _isDead { get; set; } = false;
     public bool _resetLevel { get; set; } = false;
+    private float _maxCoins = 999f;
+    private float[] _keyChain;
 
     private void takeDamage() 
     { 
         if(_lives > 0) {
             _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[6]._sound);
+            _animator.SetBool("isHurt", true);
             _lives--;
             isGrounded = _rigidbody.velocity.y <= 0;
         }
@@ -215,11 +259,9 @@ public class PlayerControl : MonoBehaviour
    #region Updates
 private void FixedUpdate()
 {
-    // Handle Collisions
     HandleCollisions();
-    
-    // Handle Movement
     HandleMovement();
+    HandleBehaviour();
 }
 
 private void HandleCollisions()
@@ -250,6 +292,12 @@ private void HandleMovement()
     fall();
     land();
 }
+
+private void HandleBehaviour()
+{
+   crouch();
+   grab();
+}
 #endregion Updates
 
     
@@ -264,11 +312,12 @@ private void HandleMovement()
         _movementInput = inputValue.Get<Vector2>();
         _isMoving = true;
         // animation
+        // conditionals for other animations ?
         _animator.SetFloat("xVelocity", Mathf.Abs(_movementInput.x));
 
         if(isGrounded)
         {
-            int soundIndex = UnityEngine.Random.Range(0,1);
+            int soundIndex = Random.Range(0,1);
             _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[soundIndex]._sound);
         }
         // flip
@@ -279,7 +328,7 @@ private void HandleMovement()
     }
     private void OnJump()
     {
-        if( (isGrounded || _coyoteJump) && _canJump)
+        if( (isGrounded || _coyoteJump) && _canJump && !_isCrouching)
         { 
             _isJumping = true;
         }
@@ -299,6 +348,7 @@ private void HandleMovement()
         }
     }
 
+
     #endregion Input
 
     /// <summary>
@@ -313,8 +363,9 @@ private void HandleMovement()
     private readonly float _velocityTransitionSpeed = 0.1f;
     private void move()
     {
-        if(_isMoving)
+        if(_isMoving && !_isCrouching)
         {
+            _animator.SetBool("isMove", true);
             _rigidbody.velocity = Vector2.SmoothDamp
             (
                 _rigidbody.velocity,
@@ -323,12 +374,9 @@ private void HandleMovement()
                 0.1f
             );
         }
-    }
-    private void stopMovingX()
-    {
-        if (_isMoving && Mathf.Abs(_rigidbody.velocity.x) <= 0.01f)
+        else 
         {
-        _isMoving = false; 
+            _animator.SetBool("isMove", false);
         }
     }
     // Generic method to smooth and clamp velocity
@@ -362,7 +410,7 @@ private void HandleMovement()
     private bool _canAssist = true;
     private void jump()
     {
-        if (_isJumping) 
+        if (_isJumping && !_isGrabbing) 
         {
             _canModify = true;
             _audioSource.PlayOneShot(AudioManager._instance._sfxPlayer[5]._sound);
@@ -428,6 +476,50 @@ private void HandleMovement()
 
     #endregion Vertical Movement
 
+    #region Behaviour
+
+    public bool _isGrabbing;
+    public bool _isCrouching;
+    private void grab()
+    {
+        if(!_isCrouching)
+        {
+            _isGrabbing = Keyboard.current.shiftKey.isPressed ? true : false;
+            _animator.SetBool("isGrab", _isGrabbing);
+        }
+    }
+    private void crouch()
+    {
+        if(Keyboard.current.downArrowKey.isPressed || Keyboard.current.sKey.isPressed)
+        {
+            _isCrouching = true;
+            _isGrabbing = false;
+        } 
+        else _isCrouching = false;
+        _animator.SetBool("isCrouch", _isCrouching);
+    }
+
+    private void configureLoot(string loot)
+    {
+        switch(loot)
+        {
+            case "heart": 
+                _lives++;
+            break;
+            case "coins": 
+                _coins += Random.Range(1,7);
+            break;
+            case "steal": // could take heart
+                if(_coins >= 3)
+                _coins -= Random.Range(1,3);
+                else _coins = 0;
+            break;
+            case "": break;
+        }
+    }
+
+    #endregion Behaviour
+
     /// <summary>
     /// Handles Collisions Against Layers
     /// > Ground (& ceiling), Hazard, 
@@ -442,7 +534,7 @@ private void HandleMovement()
     [SerializeField] private Transform leftCheckObj;
     [SerializeField] private Transform rightCheckObj;
     private readonly float radius = 0.1f;
-    private bool isGrounded, wasGrounded, hitCeiling, hitLeft, hitRight;
+    private bool isGrounded, wasGrounded, hitCeiling, hitLeft, hitRight, isPush;
 
     private void groundCheck()
     {
@@ -453,7 +545,9 @@ private void HandleMovement()
         { 
             StartCoroutine(CoyoteJumpDelay()); 
         }
+        // conditionals for other animations
         _animator.SetBool("isJumping", !isGrounded);
+            
     }
     private void ceilingCheck()
     {
@@ -462,12 +556,25 @@ private void HandleMovement()
     }
     private void hazardCheck()
     {
-      if(Physics2D.IsTouchingLayers(_collider, _levelManager.hazardLayer)  && !_isImmune)
-      {
-        takeDamage();
-        StartCoroutine(DamageImmunity());
-      }
+       // if(Physics2D.IsTouchingLayers(_collider, _levelManager.hazardLayer) && !_isImmune)
+       // {
+            Collider2D collider = Physics2D.OverlapCircle(transform.position, 0.5f, _levelManager.hazardLayer);
+            if(collider != null && !_isImmune)
+            {
+                if(collider.CompareTag("Skeleton") && collider.GetType() == typeof(BoxCollider2D))
+                {
+                    collider.GetComponent<Enemy>().configureLoot();
+                    StartCoroutine(DamageImmunity());
+                }
+                else 
+                {
+                    takeDamage();
+                    StartCoroutine(DamageImmunity());
+                }
+            }
+        //}
     }
+   // private void EnemyCheck(){}
     private void wallCheck()
     {
         hitLeft = Physics2D.OverlapCircle(leftCheckObj.position, 0.3f, _levelManager.groundLayer) && !isGrounded && transform.localScale.x == -1;
@@ -478,23 +585,50 @@ private void HandleMovement()
         Collider2D collider = Physics2D.OverlapCircle(_rigidbody.position, 0.5f, _levelManager.collectableLayer);
         if (collider != null)
         {
-             if (collider.CompareTag("Heart"))
+                if (collider.CompareTag("Heart"))
                 {
                     _audioSource.PlayOneShot(AudioManager._instance._sfxItem[0]._sound);
                     Destroy(collider.gameObject);
                     _lives++;
                 }
-                else if (collider.CompareTag("Key"))
+                else if (collider.CompareTag("Coin"))
                 {
-                    _audioSource.PlayOneShot(AudioManager._instance._sfxItem[1]._sound);
+                    _audioSource.PlayOneShot(AudioManager._instance._sfxItem[2]._sound);
                     Destroy(collider.gameObject);
-                    _keys++;
+                    if(_coins < _maxCoins) _coins++;
+                }
+                else 
+                {
+                    if (collider.CompareTag("Key")) 
+                    {
+                        _audioSource.PlayOneShot(AudioManager._instance._sfxItem[1]._sound);
+                        Destroy(collider.gameObject);
+                        _keys++;
+                    }
+                    else if (collider.CompareTag("cKey")) 
+                    {
+                        _audioSource.PlayOneShot(AudioManager._instance._sfxItem[1]._sound);
+                        Destroy(collider.gameObject);
+                        _cKeys++;
+                    }
+                    else if (collider.CompareTag("mKey")) 
+                    {
+                        _audioSource.PlayOneShot(AudioManager._instance._sfxItem[1]._sound);
+                        Destroy(collider.gameObject);
+                        _mKeys++;
+                    }
+                    else if (collider.CompareTag("sKey")) 
+                    {
+                        _audioSource.PlayOneShot(AudioManager._instance._sfxItem[1]._sound);
+                        Destroy(collider.gameObject);
+                        _sKeys++;
+                    }
                 }
         }
     }
     private void interactableCheck()
     {
-        Collider2D collider = Physics2D.OverlapCircle(_rigidbody.position, 0.5f, _levelManager.interactableLayer);
+        Collider2D collider = Physics2D.OverlapCircle(_rigidbody.position, 0.6f, _levelManager.interactableLayer);
         if (collider != null)
         {
             if (collider.CompareTag("Door"))
@@ -504,6 +638,7 @@ private void HandleMovement()
                     _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[0]._sound);
                     Destroy(collider.gameObject);
                     --_keys;
+                    _level++;
                 }
                 else
                 {
@@ -514,7 +649,41 @@ private void HandleMovement()
                     }
                 }
             } 
-            else if(collider.CompareTag("Push Block"))
+            else if (collider.CompareTag("cDoor"))
+            {
+                if(_cKeys >= 1)
+                {
+                    _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[0]._sound);
+                    Destroy(collider.gameObject);
+                    --_cKeys;
+                }
+                else
+                {
+                    if (_canPlayReject)
+                    {
+                        _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[6]._sound);
+                        StartCoroutine(PlayDoorRejection());
+                    }
+                }
+            } 
+            else if (collider.CompareTag("mDoor"))
+            {
+                if(_mKeys >= 1)
+                {
+                    _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[0]._sound);
+                    Destroy(collider.gameObject);
+                    --_mKeys;
+                }
+                else
+                {
+                    if (_canPlayReject)
+                    {
+                        _audioSource.PlayOneShot(AudioManager._instance._sfxWorld[6]._sound);
+                        StartCoroutine(PlayDoorRejection());
+                    }
+                }
+            } 
+            if(collider.CompareTag("Push Block"))
             {
                 Rigidbody2D blockRigidBody = collider.GetComponent<Rigidbody2D>();
                 AudioSource blockAudioSource = collider.GetComponent<AudioSource>();
@@ -522,7 +691,21 @@ private void HandleMovement()
 
                 if(blockRigidBody.velocity.x != 0  && !blockAudioSource.isPlaying && !pushableComponent.onTop)
                 {
+                    _animator.SetBool("isPush", true);
                     blockAudioSource.PlayOneShot(AudioManager._instance._sfxWorld[1]._sound);
+                }
+                else 
+                {
+                    _animator.SetBool("isPush", false);
+                }
+            }
+            if(collider.CompareTag("Chest"))
+            {
+                if(_isGrabbing && collider.GetType() == typeof(CircleCollider2D))
+                {
+                    Chest chest = collider.GetComponent<Chest>();
+                    configureLoot(chest._loot);
+                    chest.isOpen = true;
                 }
             }
         }
@@ -583,6 +766,7 @@ private void HandleMovement()
     {
         _isImmune = true;
         yield return new WaitForSeconds(_immunityTime);
+        _animator.SetBool("isHurt", false);
         _isImmune = false;
     }
     [SerializeField] private float _apexModifier = 0f;

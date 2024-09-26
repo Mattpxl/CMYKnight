@@ -27,6 +27,7 @@ public class Splash : MonoBehaviour
     public void StartGame()
     {
         int targetLevel = _playerControl._level == 0 ? 1 : _playerControl._level;
+        if(_playerControl._level == 0) _playerControl._level = 1;
         SceneManager.LoadScene(targetLevel);
         SetMenuVisibility(false);
     }
