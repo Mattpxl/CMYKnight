@@ -7,10 +7,8 @@ https://www.youtube.com/watch?v=SuazR2acZS0
 Unity 2022.44f1 (LTS)
 
 Support Extensions:
-- WebGL
 - MacOS 
 - LinuxOS
-- LinuxOS (Mono)
 - Windows 
 
 2D (Built-In Render Pipeline) Project 
